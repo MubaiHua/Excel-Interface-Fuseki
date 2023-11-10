@@ -48,7 +48,7 @@ For better debugging and usability, **Professional** distribution of PyCharm is 
 2. After the project is created go to `Preferences > Languages & Frameworks > Django`. Enable Django support. Point Django root project to `backend/` folder, settings - to `backend/backend/settings.py`, and manage script - to `backend/manage.py`.
 3. In the top right conner, select the `Edit Configurations` in the run/debug configuration list on the main toolbar. Click on the `+` button and select `Django Server` to create a new configuration. Make sure the interpreter settings and other settings are correct.
 4. In the `Environment` section, click on the button next to `Environment Variables`, click on the `+` button to create a new environment variable. Name is `CODE_ENV` and value is `dev`.
-5. Click on the Run button to start the server.
+5. Click on the Run button to start the server. (Do this after you have complete the database set up after part 3 and part 4)
 
 If you are using VSCode, you can start the server by the following command:
 
@@ -62,6 +62,7 @@ If you are using VSCode, you can start the server by the following command:
     CODE_ENV=dev
     python backend\manage.py runserver localhost:8000
     ```
+Since the database is not yet configured, running the `runserver` command will raise an error, please try it again after you finish part 3 and part 4
 ### 3) Set up Postgres Database
 - The database (PostgreSQL, MongoDB) is handled using docker containers. In order to start only database run:     
     ```shell
