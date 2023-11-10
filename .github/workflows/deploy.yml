@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - sam-workflow
   pull_request:
     branches:
       - main
-      - sam-workflow
 
 jobs:
   build-and-push:
@@ -45,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Run Docker Compose
         run: docker-compose up -d
 
