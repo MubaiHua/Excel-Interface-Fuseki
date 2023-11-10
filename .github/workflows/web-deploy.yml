@@ -32,4 +32,4 @@ jobs:
           context: ./client
           file: Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/fuseki-excel:latest
+          tags: ghcr.io/mubaihua/cs130-group-project:latest
