@@ -23,6 +23,5 @@ __pycache__/
 # Personal Files
 docker-compose.local.yml
 build_dev.sh
-.env
 django-static/
 dump/
