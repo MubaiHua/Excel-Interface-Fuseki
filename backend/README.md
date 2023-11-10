@@ -54,7 +54,7 @@ If you are using VSCode, you can start the server by the following command:
 
 - Windows:
     ```shell
-    Env:CODE_ENV="dev"
+    $Env:CODE_ENV="dev"
     python backend\manage.py runserver localhost:8000
     ```
 - Linux/MacOS
@@ -78,7 +78,7 @@ If you are using VSCode, you can start the server by the following command:
 1. Set up the environment variable in your shell for dev
    - Windows:
        ```shell
-       Env:CODE_ENV="dev"
+       $Env:CODE_ENV="dev"
        ```
    - Linux/MacOS
        ```shell
