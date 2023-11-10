@@ -11,22 +11,43 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
+
+def get_env_var(env_var):
+    try:
+        return os.environ[env_var]
+    except KeyError:
+        error_msg = 'Set the {} environment variable'.format(env_var)
+        raise ImproperlyConfigured(error_msg)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Determine the code environment for setting environment variables
+ENVIRONMENT = os.environ.get("CODE_ENV")
+if ENVIRONMENT == 'dev':
+    load_dotenv(os.path.join(BASE_DIR, '..', 'dev.env'))
+elif ENVIRONMENT == 'prod':
+    load_dotenv(os.path.join(BASE_DIR, '..', '.env'))
+else:
+    raise ImproperlyConfigured("No Environment Variables Found")
+
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6'
+SECRET_KEY = str(get_env_var('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = get_env_var("DEBUG").upper() == "TRUE"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [get_env_var('DJANGO_ALLOWED_HOSTS'), 'backend', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -71,17 +92,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': str(get_env_var('DB_ENGINE')),
+        'NAME': str(get_env_var('POSTGRES_DB')),
+        'USER': str(get_env_var('POSTGRES_USER')),
+        'PASSWORD': str(get_env_var('POSTGRES_PASSWORD')),
+        'HOST': str(get_env_var('POSTGRES_HOST')),
+        'PORT': int(get_env_var('POSTGRES_PORT')),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -101,7 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -112,7 +133,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
