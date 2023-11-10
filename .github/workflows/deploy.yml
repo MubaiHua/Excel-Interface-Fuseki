@@ -1,4 +1,4 @@
-name: Docker CI
+name: Deployment CI
 
 on:
   push:
@@ -26,10 +26,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push to GHCR
+      - name: Build and push client to GHCR
         uses: docker/build-push-action@v2
         with:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ghcr.io/mubaihua/cs130-group-project:latest
+          tags: ghcr.io/mubaihua/cs130-group-project-client:latest
+
+      - name: Build and push backend to GHCR
+        uses: docker/build-push-action@v2
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ghcr.io/mubaihua/cs130-group-project-backend:latest
