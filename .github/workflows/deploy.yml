@@ -41,3 +41,12 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: ghcr.io/mubaihua/cs130-group-project-backend:latest
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Run Docker Compose
+        run: docker-compose up -d
+
+      #- name: Test
