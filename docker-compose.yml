@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+  backend:
+    build: ./backend/
+    env_file:
+      - .env
+    environment:
+      - CODE_ENV=prod
+    volumes:
+      - django_static:/usr/src/django-static/
+    depends_on:
+      - psqldb
+    ports:
+      - "8000:8000"
+    command: sh -c "python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    python manage.py collectstatic --no-input &&
+                    gunicorn -w 3 -b 0.0.0.0:8000 --timeout 3600 --access-logfile - backend.wsgi:application"
+
+  psqldb:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - psqldata:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+
+volumes:
+  django_static:
+  psqldata:
+

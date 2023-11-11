@@ -1,0 +1,27 @@
+# Virtual enviroment folder
+venv/
+
+# Emacs files
+*~
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Static root static directory, just in case
+/static
+
+# Mac OS X system files
+.DS_STORE
+
+# PyCharm files
+.idea
+
+# VSCode files
+.vscode
+
+# Personal Files
+docker-compose.local.yml
+build_dev.sh
+django-static/
+dump/
