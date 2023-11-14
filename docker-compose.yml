@@ -2,7 +2,7 @@ version: '3.8'
 services:
   client:
     build:
-      context: ./client
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "80:80"
