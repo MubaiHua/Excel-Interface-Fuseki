@@ -59,7 +59,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'excelinterface'
+    'excelinterface',
+    'accounts',
+    'djoser'
 ]
 
 MIDDLEWARE = [
@@ -143,3 +145,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'account.UserAccount'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'fusekiinterfaceforexcel@gmail.com'
+EMAIL_HOST_PASSWORD = 'stqccjqxdvznvqhu'
+EMAIL_USE_TLS = True
