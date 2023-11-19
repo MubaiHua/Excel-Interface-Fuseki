@@ -13,3 +13,4 @@ sqlparse==0.4.1
 gunicorn==20.1.0
 python-dotenv
 djoser
+pyfuseki

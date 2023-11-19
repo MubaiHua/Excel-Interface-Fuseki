@@ -63,10 +63,10 @@ If you are using VSCode, you can start the server by the following command:
     python backend\manage.py runserver localhost:8000
     ```
 Since the database is not yet configured, running the `runserver` command will raise an error, please try it again after you finish part 3 and part 4
-### 3) Set up Postgres Database
-- The database (PostgreSQL, MongoDB) is handled using docker containers. In order to start only database run:     
+### 3) Set up Postgres Database and Fuseki Server
+- The database (PostgreSQL, Fuseki server) is handled using docker containers. In order to start only database run:     
     ```shell
-    docker-compose -f docker-compose.yml up -d psqldb
+    docker-compose -f docker-compose.yml up -d psqldb fuseki
     ```
 - For PSQL database name, username and password are provided in `.env` or `dev.env`.
 
