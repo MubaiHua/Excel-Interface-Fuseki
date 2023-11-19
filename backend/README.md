@@ -69,7 +69,10 @@ Since the database is not yet configured, running the `runserver` command will r
     docker-compose -f docker-compose.yml up -d psqldb fuseki
     ```
 - For PSQL database name, username and password are provided in `.env` or `dev.env`.
-
+- To check the PSQL tables, run the command:
+    ```
+  docker exec -it cs130-group-project-psqldb-1 psql -U admin postgres
+  ```
 - To turn database off run: 
     ```shell
     docker-compose -f docker-compose.yml down
