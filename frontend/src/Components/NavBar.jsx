@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import {
+  BrowserRouter as Router, Route, Routes, Link,
+} from 'react-router-dom';
 import '../App.css';
 
-const NavBar: React.FC = () => (
+function NavBar() {
+  return (
     <div className="navbar">
       <Link to="/" className="navbar-link">
         Home
@@ -17,5 +20,6 @@ const NavBar: React.FC = () => (
       </div>
     </div>
   );
+}
 
-  export default NavBar
+export default NavBar;
