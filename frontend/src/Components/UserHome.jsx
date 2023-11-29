@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../App.css';
 
-function Home() {
+function UserHome() {
   return (
     <div>
       <h1>Welcome</h1>
@@ -10,4 +10,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default UserHome;
