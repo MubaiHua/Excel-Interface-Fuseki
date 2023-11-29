@@ -23,33 +23,35 @@ function Login() {
   } = useContext(MainContext);
 
   useEffect(() => {
-    const payload = {
-      token: getJWTToken(),
-    };
-    AuthAPI.verifyCurrentUser(payload)
-      .then(() => {
-        CommonAPI.getCurrentUser()
-          .then((res) => {
-            const {
-              email, id, is_admin, name,
-            } = res;
-            setUsername(name);
-            setHasLogin(true);
-            setUserEmail(email);
-            setUserID(id);
-            setIsUserAdmin(is_admin);
-            return id;
-          })
-          .then((id) => {
-            navigate(`/home/${id}`);
-          })
-          .catch(() => {
-            alert('fail to get user information');
-          });
-      })
-      .catch(() => {
-        console.log('Need Login');
-      });
+    if (getJWTToken() !== 'djwt') {
+      const payload = {
+        token: getJWTToken(),
+      };
+      AuthAPI.verifyCurrentUser(payload)
+        .then(() => {
+          CommonAPI.getCurrentUser()
+            .then((res) => {
+              const {
+                email, id, is_admin, name,
+              } = res;
+              setUsername(name);
+              setHasLogin(true);
+              setUserEmail(email);
+              setUserID(id);
+              setIsUserAdmin(is_admin);
+              return id;
+            })
+            .then((id) => {
+              navigate(`/home/${id}`);
+            })
+            .catch(() => {
+              alert('fail to get user information');
+            });
+        })
+        .catch(() => {
+          console.log('Need Login');
+        });
+    }
   }, []); // Empty dependency array means this effect runs only once
 
   const handleSubmit = (e) => {
