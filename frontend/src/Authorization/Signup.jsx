@@ -1,4 +1,8 @@
+/* eslint-disable no-alert */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AuthAPI from '../Utils/AuthAPI';
 import '../App.css';
 
 // SignUp Component
@@ -9,6 +13,7 @@ function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,7 +36,31 @@ function SignUp() {
       setError('Please select a role.');
     }
 
-    // Handle sign up logic later
+    const payload = {
+      email,
+      name: username,
+      password,
+      re_password: confirmPassword,
+      is_admin: role === 'mappingAdmin',
+    };
+
+    AuthAPI.signup(payload)
+      .then(() => {
+        alert('Please check your email to activate your account');
+        navigate('/login');
+      })
+      .catch((err) => {
+        const { response } = err;
+        if (response.status === 400) {
+          const { data } = response;
+          let errMessage = '';
+          Object.keys(data).forEach((key) => {
+            errMessage += data[key][0];
+            errMessage += '\n';
+          });
+          alert(errMessage);
+        }
+      });
   };
 
   return (
