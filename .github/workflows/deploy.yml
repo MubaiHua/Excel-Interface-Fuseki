@@ -53,7 +53,6 @@ jobs:
           region: "us-east-2"
           version_label: ${{ github.sha }}
           deployment_package: "application.zip"
-          use_existing_version_if_available: true
 
   test:
     runs-on: ubuntu-latest
