@@ -23,7 +23,7 @@
     "containerDefinitions": [
       {
         "name": "client",
-        "image": "public.ecr.aws/m5u8r3l0/excel-to-fuseki-frontend:latest",
+        "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
         "essential": true,
         "memory": 128,
         "portMappings": [
@@ -35,7 +35,7 @@
       },
       {
         "name": "backend",
-        "image": "public.ecr.aws/m5u8r3l0/excel-to-fuseki-backend:latest",
+        "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-backend:latest",
         "essential": true,
         "memory": 128,
         "environment": [

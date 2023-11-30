@@ -43,7 +43,8 @@ jobs:
           access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           region: us-east-2
-          image: excel-to-fuseki-frontend:${{ env.PIPELINE_ID }}
+          local-image: excel-to-fuseki-frontend:${{ env.PIPELINE_ID }}
+          image: excel-to-fuseki-frontend:${{ env.PIPELINE_ID }}, excel-to-fuseki-frontend:latest
 
       - name: Build image for Backend
         run: docker build ./backend --file backend/Dockerfile --tag excel-to-fuseki-backend:${{ env.PIPELINE_ID }} --tag excel-to-fuseki-backend:latest
@@ -55,7 +56,8 @@ jobs:
           access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           region: us-east-2
-          image: excel-to-fuseki-backend:${{ env.PIPELINE_ID }}
+          local-image: excel-to-fuseki-backend:${{ env.PIPELINE_ID }}
+          image: excel-to-fuseki-backend:${{ env.PIPELINE_ID }}, excel-to-fuseki-backend:latest
       
       - name: Zip application files
         run: zip -r application.zip Dockerrun.aws.json
