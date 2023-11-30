@@ -1,8 +1,28 @@
 {
     "AWSEBDockerrunVersion": 2,
+    "volumes": [
+      {
+        "name": "django_static",
+        "host": {
+          "sourcePath": "/usr/src/django-static"
+        }
+      },
+      {
+        "name": "psqldata",
+        "host": {
+          "sourcePath": "/var/lib/postgresql/data"
+        }
+      },
+      {
+        "name": "fuseki-data",
+        "host": {
+          "sourcePath": "/fuseki-base/databases"
+        }
+      }
+    ],
     "containerDefinitions": [
       {
-        "name": "frontend",
+        "name": "client",
         "image": "ghcr.io/mubaihua/cs130-group-project-frontend:latest",
         "essential": true,
         "memory": 128,
@@ -18,10 +38,80 @@
         "image": "ghcr.io/mubaihua/cs130-group-project-backend:latest",
         "essential": true,
         "memory": 128,
+        "environment": [
+          {
+            "name": "CODE_ENV",
+            "value": "prod"
+          }
+        ],
         "portMappings": [
           {
-            "hostPort": 8080,
-            "containerPort": 8080
+            "hostPort": 8000,
+            "containerPort": 8000
+          }
+        ],
+        "mountPoints": [
+          {
+            "sourceVolume": "django_static",
+            "containerPath": "/usr/src/django-static"
+          }
+        ]
+      },
+      {
+        "name": "psqldb",
+        "image": "postgres:latest",
+        "essential": true,
+        "memory": 128,
+        "mountPoints": [
+          {
+            "sourceVolume": "psqldata",
+            "containerPath": "/var/lib/postgresql/data"
+          }
+        ],
+        "portMappings": [
+          {
+            "hostPort": 5432,
+            "containerPort": 5432
+          }
+        ]
+      },
+      {
+        "name": "fuseki",
+        "image": "secoresearch/fuseki",
+        "essential": true,
+        "memory": 128,
+        "environment": [
+          {
+            "name": "ADMIN_PASSWORD",
+            "value": "123456"
+          },
+          {
+            "name": "ENABLE_DATA_WRITE",
+            "value": "true"
+          },
+          {
+            "name": "ENABLE_UPDATE",
+            "value": "true"
+          },
+          {
+            "name": "ENABLE_UPLOAD",
+            "value": "true"
+          },
+          {
+            "name": "QUERY_TIMEOUT",
+            "value": "10000"
+          }
+        ],
+        "mountPoints": [
+          {
+            "sourceVolume": "fuseki-data",
+            "containerPath": "/fuseki-base/databases"
+          }
+        ],
+        "portMappings": [
+          {
+            "hostPort": 3030,
+            "containerPort": 3030
           }
         ]
       }
