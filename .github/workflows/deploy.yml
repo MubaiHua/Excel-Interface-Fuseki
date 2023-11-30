@@ -30,10 +30,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build the Docker image for Frontend
-        run: docker build ./frontend --file Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:latest
+        run: docker build ./frontend --file frontend/Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:latest
 
       - name: Build the Docker image for Backend
-        run: docker build ./backend --file Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:latest
+        run: docker build ./backend --file backend/Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:latest
         
       - name: Push the Frontend Docker image to Amazon ECR
         run: docker push --all-tags ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend
