@@ -1,4 +1,3 @@
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
@@ -46,6 +45,5 @@ def list_fuseki_datasets(request):
         if response:
             error_message += f", Response text: {response.text}"
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 

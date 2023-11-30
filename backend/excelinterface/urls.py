@@ -5,3 +5,4 @@ urlpatterns = [
     path('get/', get, name='get'),
     path('list_fuseki_datasets/', list_fuseki_datasets, name='list_fuseki_datasets'),
 ]
+
