@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import get, i_want_my_own_name
+from .views import get, list_fuseki_datasets
 
 urlpatterns = [
     path('get/', get, name='get'),
-    path('i_want_my_own_name/', i_want_my_own_name, name='i_want_my_own_name')
-    # other paths specific to your app...
+    path('list_fuseki_datasets/', list_fuseki_datasets, name='list_fuseki_datasets'),
 ]
+
