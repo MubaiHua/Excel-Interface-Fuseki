@@ -1,6 +1,10 @@
 from rest_framework.response import Response
+from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
+import requests
+from requests.auth import HTTPBasicAuth
+
 @api_view(['GET'])
 def get(request):
     fuseki_update = FusekiUpdate('http://localhost:3030', 'message')
@@ -23,5 +27,23 @@ def get(request):
 
 
 @api_view(['GET'])
-def i_want_my_own_name(request):
-    return Response("hello there")
+def list_fuseki_datasets(request):
+    fuseki_server_url = 'http://localhost:3030/$/datasets'
+    try:
+        username = 'admin'
+        password = '123456'
+        
+        # GET request to the Fuseki server to retrieve datasets
+        response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
+        response.raise_for_status()  # will raise an HTTPError if an error occurs
+        datasets = response.json()
+
+        return Response(datasets)
+    
+    except requests.RequestException as e:
+        error_message = str(e)
+        if response:
+            error_message += f", Response text: {response.text}"
+        return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
