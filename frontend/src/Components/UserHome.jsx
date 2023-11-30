@@ -4,21 +4,14 @@ import { MainContext } from '../MainContext';
 import '../App.css';
 
 function UserHome() {
-  const { hasLogin, userName } = useContext(MainContext);
+  const { hasLogin, isUserAdmin } = useContext(MainContext);
   if (!hasLogin) {
     return <Navigate to="/login" />;
   }
-
-  return (
-    <div>
-      <h1>
-        Welcome
-        {' '}
-        {userName}
-      </h1>
-      <p>This is the home page.</p>
-    </div>
-  );
+  if (!isUserAdmin) {
+    return <Navigate to="/home/:uid/data_analyst" />;
+  }
+  return <Navigate to="/home/:uid/mapping_admin" />;
 }
 
 export default UserHome;
