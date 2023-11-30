@@ -1,0 +1,29 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+      {
+        "name": "frontend",
+        "image": "ghcr.io/mubaihua/cs130-group-project-frontend:latest",
+        "essential": true,
+        "memory": 128,
+        "portMappings": [
+          {
+            "hostPort": 80,
+            "containerPort": 80
+          }
+        ]
+      },
+      {
+        "name": "backend",
+        "image": "ghcr.io/mubaihua/cs130-group-project-backend:latest",
+        "essential": true,
+        "memory": 128,
+        "portMappings": [
+          {
+            "hostPort": 8080,
+            "containerPort": 8080
+          }
+        ]
+      }
+    ]
+  }

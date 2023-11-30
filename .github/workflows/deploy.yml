@@ -39,6 +39,21 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: ghcr.io/mubaihua/cs130-group-project-backend:latest
+      
+      - name: Zip application files
+        run: zip -r application.zip Dockerrun.aws.json
+
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: "excel-interface-fuseki"
+          environment_name: "excel-interface-fuseki-env "
+          region: "us-east-2"
+          version_label: ${{ github.sha }}
+          deployment_package: "application.zip"
+
   test:
     runs-on: ubuntu-latest
     steps:
