@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import HelloWorldAPIView
+from .views import get, list_fuseki_datasets
 
 urlpatterns = [
-    path('hello/', HelloWorldAPIView.as_view(), name='hello'),
-    # other paths specific to your app...
+    path('get/', get, name='get'),
+    path('list_fuseki_datasets/', list_fuseki_datasets, name='list_fuseki_datasets'),
 ]

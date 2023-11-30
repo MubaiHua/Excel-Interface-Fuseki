@@ -11,6 +11,7 @@ import Activate from './Authorization/Activate';
 import NavBar from './Components/NavBar';
 import UserHome from './Components/UserHome';
 import MainContextProvider from './MainContext';
+import DefineMappings from './Components/DefineMappings';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             <Route path="/reset_password" element={<ResetPassword />} />
             <Route path="/password/reset/confirm/:uid/:token" element={<ResetPasswordConfirm />} />
             <Route path="/activate/:uid/:token" element={<Activate />} />
+            <Route path="/define_mappings" element={<DefineMappings />} />
           </Routes>
         </div>
       </Router>
