@@ -10,7 +10,6 @@ import ResetPasswordConfirm from './Authorization/ResetPasswordConfirm';
 import Activate from './Authorization/Activate';
 import NavBar from './Components/NavBar';
 import UserHome from './Components/UserHome';
-import MappingAdmin from './Components/MappingAdmin';
 import DataAnalyst from './Components/DataAnalyst';
 import MainContextProvider from './MainContext';
 import DefineMappings from './Components/DefineMappings';
@@ -25,7 +24,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home/:uid" element={<UserHome />} />
-            <Route path="/home/:uid/mapping_admin" element={<MappingAdmin />} />
             <Route path="/home/:uid/data_analyst" element={<DataAnalyst />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />

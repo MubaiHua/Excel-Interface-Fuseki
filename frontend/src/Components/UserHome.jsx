@@ -11,7 +11,7 @@ function UserHome() {
   if (!isUserAdmin) {
     return <Navigate to="/home/:uid/data_analyst" />;
   }
-  return <Navigate to="/home/:uid/mapping_admin" />;
+  return <Navigate to="/define_mappings" />;
 }
 
 export default UserHome;
