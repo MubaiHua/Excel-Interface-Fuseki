@@ -49,7 +49,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: "excel-interface-fuseki"
-          environment_name: "Excel-interface-fuseki-env-2"
+          environment_name: "excel-interface-fuseki-env"
           region: "us-east-2"
           version_label: ${{ github.sha }}
           deployment_package: "application.zip"
