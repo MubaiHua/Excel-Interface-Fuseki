@@ -27,19 +27,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Get ECR password (temporary)
+        id: get-ecr-password
+        run: echo "::set-output name=password::$(aws ecr get-login-password)"
+
       - uses: actions/checkout@v2
 
-      - name: Build the Docker image for Frontend
-        run: docker build ./frontend --file frontend/Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend:latest
+      - name: Build & Push image for Frontend
+        uses: docker/build-push-action@v1
+        with:
+          context: ./frontend
+          dockerfile: ./frontend/Dockerfile
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          repository: excel-to-fuseki-frontend
+          username: AWS
+          password: ${{ steps.get-ecr-password.outputs.password }}
+          add_git_labels: true
+          tag_with_ref: true
 
-      - name: Build the Docker image for Backend
-        run: docker build ./backend --file backend/Dockerfile --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:${{ env.PIPELINE_ID }} --tag ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend:latest
-        
-      - name: Push the Frontend Docker image to Amazon ECR
-        run: docker push --all-tags ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-frontend
-
-      - name: Push the Backend Docker image to Amazon ECR
-        run: docker push --all-tags ${{ steps.login-ecr.outputs.registry }}/excel-to-fuseki-backend
+      - name: Build & Push image for Backend
+        uses: docker/build-push-action@v1
+        with:
+          context: ./backend
+          dockerfile: ./backend/Dockerfile
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          repository: excel-to-fuseki-backend
+          username: AWS
+          password: ${{ steps.get-ecr-password.outputs.password }}
+          add_git_labels: true
+          tag_with_ref: true
       
       - name: Zip application files
         run: zip -r application.zip Dockerrun.aws.json
