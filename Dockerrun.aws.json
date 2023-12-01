@@ -31,7 +31,16 @@
             "hostPort": 80,
             "containerPort": 80
           }
-        ]
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-create-group": "true",
+              "awslogs-group": "awslogs-client",
+              "awslogs-region": "us-east-2",
+              "awslogs-stream-prefix": "awslogs-example"
+          }
+        }
       },
       {
         "name": "backend",
@@ -55,7 +64,16 @@
             "sourceVolume": "django_static",
             "containerPath": "/usr/src/django-static"
           }
-        ]
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-create-group": "true",
+              "awslogs-group": "awslogs-backend",
+              "awslogs-region": "us-east-2",
+              "awslogs-stream-prefix": "awslogs-example"
+          }
+        }
       },
       {
         "name": "psqldb",
@@ -73,7 +91,16 @@
             "hostPort": 5432,
             "containerPort": 5432
           }
-        ]
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-create-group": "true",
+              "awslogs-group": "awslogs-psqldb",
+              "awslogs-region": "us-east-2",
+              "awslogs-stream-prefix": "awslogs-example"
+          }
+        }
       },
       {
         "name": "fuseki",
@@ -113,7 +140,16 @@
             "hostPort": 3030,
             "containerPort": 3030
           }
-        ]
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-create-group": "true",
+              "awslogs-group": "awslogs-fuseki",
+              "awslogs-region": "us-east-2",
+              "awslogs-stream-prefix": "awslogs-example"
+          }
+        }
       }
     ]
   }
