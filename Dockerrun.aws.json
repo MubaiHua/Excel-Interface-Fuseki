@@ -47,6 +47,7 @@
         "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-backend:latest",
         "essential": true,
         "memory": 128,
+        "command": ["sh", "/startup.sh"],
         "environment": [
           {
             "name": "CODE_ENV",
