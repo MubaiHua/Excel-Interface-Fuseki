@@ -1,5 +1,6 @@
 {
     "AWSEBDockerrunVersion": 2,
+    "taskRoleArn": "arn:aws:iam::815829586688:role/task-role",
     "volumes": [
       {
         "name": "django_static",
