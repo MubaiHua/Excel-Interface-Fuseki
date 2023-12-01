@@ -2,7 +2,7 @@ name: Deployment CI
 
 env:
   PIPELINE_ID: ${{ github.run_id }}-${{ github.run_number }}
-  AWS_REGION: "us-east-2"
+  AWS_REGION: "us-west-1"
 
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: "excel-interface-fuseki"
-          environment_name: "excel-interface-fuseki-env-4"
+          environment_name: "excel-interface-fuseki-env"
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
           deployment_package: "application.zip"

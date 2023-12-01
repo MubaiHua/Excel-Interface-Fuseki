@@ -37,7 +37,7 @@
           "options": {
               "awslogs-create-group": "true",
               "awslogs-group": "awslogs-client",
-              "awslogs-region": "us-east-2",
+              "awslogs-region": "us-west-1",
               "awslogs-stream-prefix": "awslogs-example"
           }
         }
@@ -111,7 +111,7 @@
           "options": {
               "awslogs-create-group": "true",
               "awslogs-group": "awslogs-backend",
-              "awslogs-region": "us-east-2",
+              "awslogs-region": "us-west-1",
               "awslogs-stream-prefix": "awslogs-example"
           }
         }
@@ -180,7 +180,7 @@
           "options": {
               "awslogs-create-group": "true",
               "awslogs-group": "awslogs-psqldb",
-              "awslogs-region": "us-east-2",
+              "awslogs-region": "us-west-1",
               "awslogs-stream-prefix": "awslogs-example"
           }
         }
@@ -229,11 +229,10 @@
           "options": {
               "awslogs-create-group": "true",
               "awslogs-group": "awslogs-fuseki",
-              "awslogs-region": "us-east-2",
+              "awslogs-region": "us-west-1",
               "awslogs-stream-prefix": "awslogs-example"
           }
         }
       }
     ]
   }
-  
