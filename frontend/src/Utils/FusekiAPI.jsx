@@ -9,3 +9,13 @@ export const getFusekiDatasets = () => {
         throw error;
     });
 };
+
+export const getDatabaseTypes = () => {
+    return APIManager.get('/api/get_database_types/')
+      .then(data => {
+          return data;
+      })
+      .catch(error => {
+          throw error;
+      });
+  };
