@@ -1,46 +1,52 @@
 import React, { useContext } from 'react';
-import {
-  // eslint-disable-next-line no-unused-vars
-  BrowserRouter as Router, Route, Routes, Link, useNavigate,
-} from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 import { MainContext } from '../MainContext';
 import { cleanJWTToken } from '../Utils/LocalStorageAccessor';
-import '../App.css';
 
 function NavBar() {
-  const { hasLogin, setHasLogin } = useContext(MainContext);
+  const { hasLogin, setHasLogin, userID } = useContext(MainContext);
   const navigate = useNavigate();
 
-  const handleLogout = (e) => {
-    e.preventDefault();
+  const handleLogout = () => {
     cleanJWTToken();
     setHasLogin(false);
     navigate('/');
   };
 
-  if (!hasLogin) {
-    return (
-      <div className="navbar">
-        <Link to="/" className="navbar-link">
-          Home
-        </Link>
-        <div className="navbar-right">
-          <Link to="/signup" className="navbar-link">
-            Sign Up
-          </Link>
-          <Link to="/login" className="navbar-link">
-            Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
   return (
-    <div className="navbar">
-      <div className="navbar-right">
-        <button type="button" onClick={handleLogout}>Logout</button>
-      </div>
-    </div>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          {hasLogin ? (
+            <RouterLink to={`/home/${userID}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              Home
+            </RouterLink>
+          ) : (
+            <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Home
+            </RouterLink>
+          )}
+        </Typography>
+        {hasLogin ? (
+          <Button color="inherit" onClick={handleLogout}>
+            Logout
+          </Button>
+        ) : (
+          <>
+            <Button color="inherit" component={RouterLink} to="/signup">
+              Sign Up
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/login">
+              Login
+            </Button>
+          </>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 }
 
