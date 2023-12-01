@@ -13,28 +13,28 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from django.core.exceptions import ImproperlyConfigured
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 
-def get_env_var(env_var):
-    try:
-        return os.environ[env_var]
-    except KeyError:
-        error_msg = 'Set the {} environment variable'.format(env_var)
-        raise ImproperlyConfigured(error_msg)
+# def get_env_var(env_var):
+#     try:
+#         return os.environ[env_var]
+#     except KeyError:
+#         error_msg = 'Set the {} environment variable'.format(env_var)
+#         raise ImproperlyConfigured(error_msg)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Determine the code environment for setting environment variables
-ENVIRONMENT = os.environ.get("CODE_ENV")
-if ENVIRONMENT == 'dev':
-    load_dotenv(os.path.join(BASE_DIR, '..', 'dev.env'))
-elif ENVIRONMENT == 'prod':
-    load_dotenv(os.path.join(BASE_DIR, '..', '.env'))
-else:
-    raise ImproperlyConfigured("No Environment Variables Found")
+# # Determine the code environment for setting environment variables
+# ENVIRONMENT = os.environ.get("CODE_ENV")
+# if ENVIRONMENT == 'dev':
+#     load_dotenv(os.path.join(BASE_DIR, '..', 'dev.env'))
+# elif ENVIRONMENT == 'prod':
+#     load_dotenv(os.path.join(BASE_DIR, '..', '.env'))
+# else:
+#     raise ImproperlyConfigured("No Environment Variables Found")
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -42,12 +42,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = str(get_env_var('SECRET_KEY'))
+SECRET_KEY = "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env_var("DEBUG").upper() == "TRUE"
+DEBUG = True
 
-ALLOWED_HOSTS = [get_env_var('DJANGO_ALLOWED_HOSTS'), 'backend', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['backend', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -101,12 +101,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': str(get_env_var('DB_ENGINE')),
-        'NAME': str(get_env_var('POSTGRES_DB')),
-        'USER': str(get_env_var('POSTGRES_USER')),
-        'PASSWORD': str(get_env_var('POSTGRES_PASSWORD')),
-        'HOST': str(get_env_var('POSTGRES_HOST')),
-        'PORT': int(get_env_var('POSTGRES_PORT')),
+        'ENGINE': "django.db.backends.postgresql_psycopg2",
+        'NAME': "postgres",
+        'USER': "admin",
+        'PASSWORD': "123456",
+        'HOST': "psqldb",
+        'PORT': 5432,
     }
 }
 
@@ -168,8 +168,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
 }
 
-DOMAIN = (str(get_env_var('DOMAIN')))
-SITE_NAME = (str(get_env_var('SITE_NAME')))
+SITE_NAME = "Excel Interface Fuseki"
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
