@@ -8,28 +8,39 @@ import TextField from '@mui/material/TextField';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-function AddDatabase() {
+export default function AddDatabase() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [databaseName, setDatabaseName] = useState('');
   const [graphName, setGraphName] = useState('');
+
+  const readBinaryFile = (file, callback) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const arrayBuffer = event.target.result;
+      const dataView = new DataView(arrayBuffer);
+
+      // Assuming your binary file has a specific structure, you need to implement your own logic to parse it
+      // This is just a placeholder example, adjust it based on the actual structure of your binary data
+      for (let i = 0; i < dataView.byteLength; i += 8) {
+        const line = dataView.getFloat64(i); // Adjust the method based on your data type
+        callback(line.toString()); // Convert each line to a string and send it to the callback
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
       setSelectedFile(file);
 
-      // Read the content of the file as text
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const fileContent = event.target.result;
+      // Read the binary file line by line
+      readBinaryFile(file, (line) => {
+        // Process each line as needed
+        console.log('Parsed line:', line);
 
-        // Parse and process the file content as needed
-        console.log('Parsed file content:', fileContent);
-
-        // You can perform additional processing or send the content to the server
-        // For example, you might want to extract specific information or perform validation
-      };
-      reader.readAsText(file);
+        // You can send each line to the server or perform additional processing
+      });
     }
   }, []);
 
@@ -38,7 +49,7 @@ function AddDatabase() {
     try {
       // Prepare the data to be sent to the server
       const requestData = {
-        fileContent: selectedFile, // Assuming selectedFile contains the text content
+        fileContent: selectedFile, // Assuming selectedFile contains the binary file
         databaseName,
         graphName,
       };
@@ -62,6 +73,10 @@ function AddDatabase() {
         Creating a new database
       </Typography>
 
+      <Typography variant="h6" sx={{ marginBottom: '8px' }}>
+        Please upload your binary file
+      </Typography>
+
       <TextField
         label="Database Name"
         variant="outlined"
@@ -78,10 +93,6 @@ function AddDatabase() {
         value={graphName}
         onChange={(e) => setGraphName(e.target.value)}
       />
-
-      <Typography variant="h6" sx={{ marginBottom: '8px' }}>
-        Please upload your turtle file
-      </Typography>
 
       <Box
         {...getRootProps()}
@@ -118,5 +129,3 @@ function AddDatabase() {
     </div>
   );
 }
-
-export default AddDatabase;
