@@ -18,6 +18,12 @@
         "host": {
           "sourcePath": "/fuseki-base/databases"
         }
+      },
+      {
+        "name": "react_build",
+        "host": {
+            "sourcePath": "/var/www/react"
+        }
       }
     ],
     "containerDefinitions": [
@@ -32,6 +38,13 @@
                 "containerPort": 80
             }
         ],
+        "mountPoints": [
+          {
+              "sourceVolume": "react_build",
+              "containerPath": "/var/www/react",
+              "readOnly": true
+          }
+      ],
         "logConfiguration": {
           "logDriver": "awslogs",
           "options": {
