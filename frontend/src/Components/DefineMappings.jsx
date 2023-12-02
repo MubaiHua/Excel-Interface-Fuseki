@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
+import {
+  Container,
+  Typography,
+  Select,
+  MenuItem,
+  Grid,
+} from '@mui/material';
 import { getFusekiDatasets } from '../Utils/FusekiAPI';
 import { MainContext } from '../MainContext';
 
-function DefineMappings() {
+function DefineMappings({ userID, userName }) {
   const [datasets, setDatasets] = useState([]);
+  const [selectedDataset, setSelectedDataset] = useState('');
   const [error, setError] = useState('');
-  const { userName } = useState(MainContext);
 
   useEffect(() => {
     getFusekiDatasets()
@@ -17,7 +24,12 @@ function DefineMappings() {
         console.error('Error fetching datasets:', err);
         setError('Failed to load datasets');
       });
-  }, []);
+    console.log(userID);
+  }, [userID]);
+
+  const handleDatasetChange = (event) => {
+    setSelectedDataset(event.target.value);
+  };
 
   if (error) {
     return (
@@ -27,52 +39,35 @@ function DefineMappings() {
       </div>
     );
   }
+
   return (
-    <div>
-      <h1>
+    <Container style={{ height: '100vh', paddingTop: '0%', overflow: 'hidden' }}>
+      <Typography variant="h3" align="center" gutterBottom>
         Welcome Mapping Administrator
         {' '}
-        { userName }
-      </h1>
-      <h1>
+        {userName}
+      </Typography>
+      <Typography variant="h4" align="center" gutterBottom>
         Please select the database you would like to access:
-      </h1>
-      <h1>Fuseki Datasets</h1>
-      {datasets.map((dataset, index) => (
-        <div key={index}>
-          <h2>
-            Dataset Name:
-            {dataset}
-          </h2>
-        </div>
-      ))}
-    </div>
+      </Typography>
+
+      <Grid container style={{ height: '70%' }}>
+        <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+          <Typography variant="h5">Fuseki Datasets</Typography>
+          <Select value={selectedDataset} onChange={handleDatasetChange} fullWidth>
+            {datasets.map((dataset, index) => (
+              <MenuItem key={index} value={dataset}>
+                {dataset}
+              </MenuItem>
+            ))}
+          </Select>
+        </Grid>
+        <Grid item xs={6} style={{ padding: '10px' }}>
+          {/* Add content for the right half of the page */}
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
-//   return (
-//     <div>
-//       <h1>Fuseki Datasets</h1>
-//       {datasets.map((dataset, index) => (
-//         <div key={index}>
-//           <h2>Dataset Name: {dataset["ds.name"]}</h2>
-//           <p>Status: {dataset["ds.state"] ? 'Active' : 'Inactive'}</p>
-//           <h3>Services:</h3>
-//           <ul>
-//             {dataset["ds.services"].map((service, serviceIndex) => (
-//               <li key={serviceIndex}>
-//                 <strong>{service["srv.description"]}</strong>
-//                 <ul>
-//                   {service["srv.endpoints"].map((endpoint, endpointIndex) => (
-//                     <li key={endpointIndex}>{endpoint}</li>
-//                   ))}
-//                 </ul>
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
 
 export default DefineMappings;
