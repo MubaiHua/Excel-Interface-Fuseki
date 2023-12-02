@@ -14,6 +14,7 @@
               }
           ],
           "essential": true,
+          "memory": 128,
           "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-backend:latest",
           "mountPoints": [
               {
@@ -40,6 +41,7 @@
       },
       {
           "essential": true,
+          "memory": 128,
           "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
           "name": "frontend",
           "logConfiguration": {
@@ -76,6 +78,7 @@
               }
           ],
           "essential": true,
+          "memory": 128,
           "image": "secoresearch/fuseki",
           "mountPoints": [
               {
@@ -102,6 +105,7 @@
       },
       {
           "essential": true,
+          "memory": 128,
           "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
           "mountPoints": [
               {
@@ -128,6 +132,7 @@
       },
       {
           "essential": true,
+          "memory": 128,
           "image": "postgres:latest",
           "mountPoints": [
               {
