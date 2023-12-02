@@ -5,15 +5,16 @@ from rest_framework.decorators import api_view
 import requests
 from requests.auth import HTTPBasicAuth
 
+username = 'admin'
+password = '123456'
+auth_obj = HTTPBasicAuth(username, password)
+
 @api_view(['GET'])
 def list_fuseki_datasets(request):
     fuseki_server_url = 'http://localhost:3030/$/datasets'
     try:
-        username = 'admin'
-        password = '123456'
-
         # GET request to the Fuseki server to retrieve datasets
-        response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
+        response = requests.get(fuseki_server_url, auth=auth_obj)
         response.raise_for_status()  # will raise an HTTPError if an error occurs
         datasets = response.json()
         db_names = []
@@ -48,6 +49,40 @@ def get_database_types(request):
         type_names.append(name)
 
     return Response(type_names)
+
+@api_view(['POST'])
+def create_databse(request):
+    # Assuming you receive some data in the request
+    turtle_file = request.FILES['turtle_file']
+
+    data_to_send = {
+        'dbName': 'newDB',
+        'dbType': 'tdb2'
+        # Add other data as needed
+    }
+
+    # Make another API call with the data
+    api_url = 'http://localhost:3030/$/datasets'
+    try:
+        response = requests.post(api_url, data=data_to_send, auth=auth_obj)
+        # You can handle the response as needed
+        if response.status_code == 200:
+            # Successful API call
+            return Response({'message': 'API call successful'})
+        else:
+            # Handle other response codes
+            return Response({'message': 'API call failed'}, status=400)
+    except requests.RequestException as e:
+        # Handle exceptions, e.g., connection error
+        return Response({'message': f'Error: {str(e)}'}, status=400)
+
+
+
+
+
+
+
+
 
 # @api_view(['GET'])
 # def get(request):

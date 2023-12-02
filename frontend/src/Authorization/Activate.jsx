@@ -1,18 +1,32 @@
 import React, { useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import AuthAPI from '../Utils/AuthAPI';
 
-function Activate(props) {
+const theme = createTheme();
+
+function Activate() {
   const [verified, setVerified] = useState(false);
   const { uid, token } = useParams();
 
-  const verifyAccount = (e) => {
+  const verifyAccount = () => {
     const payload = {
       uid,
       token,
     };
-    AuthAPI.activation(payload);
-    setVerified(true);
+
+    AuthAPI.activation(payload)
+      .then(() => {
+        setVerified(true);
+      })
+      .catch((err) => {
+        console.error('Error verifying account:', err);
+        alert('Error verifying account:', err);
+      });
   };
 
   if (verified) {
@@ -20,17 +34,24 @@ function Activate(props) {
   }
 
   return (
-    <div>
-      <h1>Verify your Account:</h1>
-      <button
-        onClick={verifyAccount}
-        style={{ marginTop: '50px' }}
-        type="button"
-        className="btn btn-primary"
-      >
-        Verify
-      </button>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Container component="main" maxWidth="xs" style={{ marginTop: '50px' }}>
+        <Paper elevation={3} style={{ padding: '20px', textAlign: 'center' }}>
+          <Typography variant="h4" gutterBottom>
+            Verify your Account
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={verifyAccount}
+            fullWidth
+            style={{ marginTop: '20px' }}
+          >
+            Verify
+          </Button>
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
 }
 

@@ -24,7 +24,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home/:uid" element={<UserHome />} />
-            <Route path="/home/:uid/data_analyst" element={<DataAnalyst />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset_password" element={<ResetPassword />} />
