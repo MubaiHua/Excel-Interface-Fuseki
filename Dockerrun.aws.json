@@ -20,9 +20,15 @@
         }
       },
       {
-        "name": "react_build",
+        "name": "frontend",
         "host": {
-            "sourcePath": "/var/www/react"
+            "sourcePath": "/var/app/current/frontend"
+        }
+      },
+      {
+        "name": "nginx-proxy-conf",
+        "host": {
+            "sourcePath": "/var/app/current/nginx/default.conf"
         }
       }
     ],
@@ -35,16 +41,28 @@
         "portMappings": [
             {
                 "hostPort": 80,
-                "containerPort": 80
+                "containerPort": 8080
             }
+        ],
+        "links": [
+          "frontend", "backend"
         ],
         "mountPoints": [
           {
-              "sourceVolume": "react_build",
-              "containerPath": "/var/www/react",
+              "sourceVolume": "nginx-proxy-conf",
+              "containerPath": "/etc/nginx/conf.d/default.conf",
               "readOnly": true
+          },
+          {
+            "sourceVolume": "frontend",
+            "containerPath": "/var/www/html",
+            "readOnly": true
+          },
+          {
+            "sourceVolume": "django_static",
+            "containerPath": "/usr/src/django-static"
           }
-      ],
+        ],
         "logConfiguration": {
           "logDriver": "awslogs",
           "options": {
@@ -56,12 +74,16 @@
         }
       },
       {
-
         "name": "frontend",
         "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
         "essential": true,
         "memory": 128,
-        "portMappings": [
+        "mountPoints": [
+          {
+              "sourceVolume": "frontend",
+              "containerPath": "/var/www/html",
+              "readOnly": true
+          }
         ],
         "logConfiguration": {
           "logDriver": "awslogs",

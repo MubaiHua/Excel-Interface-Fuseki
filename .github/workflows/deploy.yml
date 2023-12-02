@@ -60,7 +60,7 @@ jobs:
           image: excel-to-fuseki-backend:${{ env.PIPELINE_ID }}, excel-to-fuseki-backend:latest
       
       - name: Zip application files
-        run: zip -r application.zip Dockerrun.aws.json
+        run: zip -r application.zip . -x "frontend/node_modules/**/*"
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v18
