@@ -97,6 +97,27 @@ export default function DefineMappings({ userName, userID }) {
           );
         })}
       </Stepper>
+
+      {activeStep === 0 && (
+        <Grid container style={{ height: '70%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Please select the database you would like to access:
+            </Typography>
+            <Typography variant="h5">Fuseki Datasets</Typography>
+            <Select value={selectedDataset} onChange={handleDatasetChange} fullWidth>
+              {datasets.map((dataset, index) => (
+                <MenuItem key={index} value={dataset}>
+                  {dataset}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid item xs={6} style={{ padding: '10px' }}>
+            {/* Add content for the right half of the page */}
+          </Grid>
+        </Grid>
+      )}
       {activeStep === steps.length ? (
         <>
           <Typography sx={{ mt: 2, mb: 1 }}>
@@ -107,26 +128,8 @@ export default function DefineMappings({ userName, userID }) {
             <Button onClick={handleReset}>Create a new Mapping</Button>
           </Box>
         </>
-      ) : (
-        <>
-          <Grid container style={{ height: '70%' }}>
-            <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
-              <Typography variant="h4" align="center" gutterBottom>
-                Please select the database you would like to access:
-              </Typography>
-              <Typography variant="h5">Fuseki Datasets</Typography>
-              <Select value={selectedDataset} onChange={handleDatasetChange} fullWidth>
-                {datasets.map((dataset, index) => (
-                  <MenuItem key={index} value={dataset}>
-                    {dataset}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Grid>
-            <Grid item xs={6} style={{ padding: '10px' }}>
-              {/* Add content for the right half of the page */}
-            </Grid>
-          </Grid>
+      )
+        : (
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Button
               color="inherit"
@@ -138,17 +141,16 @@ export default function DefineMappings({ userName, userID }) {
             </Button>
             <Box sx={{ flex: '1 1 auto' }} />
             {isStepOptional(activeStep) && (
-              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                Skip
-              </Button>
+            <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
+              Skip
+            </Button>
             )}
 
             <Button onClick={handleNext}>
               {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
             </Button>
           </Box>
-        </>
-      )}
+        ) }
     </Box>
   );
 }

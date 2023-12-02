@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -16,7 +16,11 @@ import ListItemText from '@mui/material/ListItemText';
 import AddIcon from '@mui/icons-material/Add';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import SettingsIcon from '@mui/icons-material/Settings';
+import StorageIcon from '@mui/icons-material/Storage';
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import DefineMappings from './DefineMappings';
+import DatabaseOverview from './DatabaseOverview';
+import AddDatabase from './AddDatabase';
 
 const drawerWidth = 240;
 
@@ -51,6 +55,7 @@ const defaultTheme = createTheme();
 
 export default function Dashboard({ userID, userName }) {
   const [open, setOpen] = useState(true);
+  const [tab, setTab] = useState('Overview');
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -70,17 +75,29 @@ export default function Dashboard({ userID, userName }) {
           </Toolbar>
           <Divider />
           <List component="nav">
-            <ListItemButton>
+            <ListItemButton onClick={() => setTab('Overview')}>
+              <ListItemIcon>
+                <StorageIcon />
+              </ListItemIcon>
+              <ListItemText primary="Overview" />
+            </ListItemButton>
+            <ListItemButton onClick={() => setTab('Create Mapping')}>
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
               <ListItemText primary="Create Mapping" />
             </ListItemButton>
-            <ListItemButton>
+            <ListItemButton onClick={() => setTab('Previous Mappings')}>
               <ListItemIcon>
                 <FormatListBulletedIcon />
               </ListItemIcon>
               <ListItemText primary="Previous Mappings" />
+            </ListItemButton>
+            <ListItemButton onClick={() => setTab('Add Database')}>
+              <ListItemIcon>
+                <PostAddIcon />
+              </ListItemIcon>
+              <ListItemText primary="Add Database" />
             </ListItemButton>
             <Divider sx={{ my: 1 }} />
             <ListItemButton>
@@ -104,7 +121,9 @@ export default function Dashboard({ userID, userName }) {
         >
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <DefineMappings userID={userID} userName={userName} />
+            {tab === 'Overview' && (<DatabaseOverview userID={userID} userName={userName} />)}
+            {tab === 'Create Mapping' && (<DefineMappings userID={userID} userName={userName} />)}
+            {tab === 'Add Database' && (<AddDatabase userID={userID} userName={userName} />)}
           </Container>
         </Box>
       </Box>
