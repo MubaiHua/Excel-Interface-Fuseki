@@ -8,10 +8,54 @@
               "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --no-input && gunicorn -w 3 -b 0.0.0.0:8000 --timeout 3600 --access-logfile - backend.wsgi:application"
           ],
           "environment": [
-              {
-                  "name": "CODE_ENV",
-                  "value": "prod"
-              }
+            {
+              "name": "CODE_ENV",
+              "value": "prod"
+            },
+            {
+              "name": "SECRET_KEY",
+              "value": "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6"
+            },
+            {
+              "name": "DEBUG",
+              "value": "TRUE"
+            },
+            {
+              "name": "DJANGO_ALLOWED_HOSTS",
+              "value": "localhost"
+            },
+            {
+              "name": "DB_ENGINE",
+              "value": "django.db.backends.postgresql_psycopg2"
+            },
+            {
+              "name": "POSTGRES_PASSWORD",
+              "value": "123456"
+            },
+            {
+              "name": "POSTGRES_USER",
+              "value": "admin"
+            },
+            {
+              "name": "POSTGRES_DB",
+              "value": "postgres"
+            },
+            {
+              "name": "POSTGRES_PORT",
+              "value": "5432"
+            },
+            {
+              "name": "POSTGRES_HOST",
+              "value": "psqldb"
+            },
+            {
+              "name": "SITE_NAME",
+              "value": "Excel Interface Fuseki"
+            },
+            {
+              "name": "DOMAIN",
+              "value": "52.8.13.80"
+            }
           ],
           "essential": true,
           "memory": 128,
@@ -131,6 +175,52 @@
           }
       },
       {
+        "environment": [
+          {
+            "name": "SECRET_KEY",
+            "value": "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6"
+          },
+          {
+            "name": "DEBUG",
+            "value": "TRUE"
+          },
+          {
+            "name": "DJANGO_ALLOWED_HOSTS",
+            "value": "localhost"
+          },
+          {
+            "name": "DB_ENGINE",
+            "value": "django.db.backends.postgresql_psycopg2"
+          },
+          {
+            "name": "POSTGRES_PASSWORD",
+            "value": "123456"
+          },
+          {
+            "name": "POSTGRES_USER",
+            "value": "admin"
+          },
+          {
+            "name": "POSTGRES_DB",
+            "value": "postgres"
+          },
+          {
+            "name": "POSTGRES_PORT",
+            "value": "5432"
+          },
+          {
+            "name": "POSTGRES_HOST",
+            "value": "psqldb"
+          },
+          {
+            "name": "SITE_NAME",
+            "value": "Excel Interface Fuseki"
+          },
+          {
+            "name": "DOMAIN",
+            "value": "52.8.13.80"
+          }
+        ],
           "essential": true,
           "memory": 128,
           "image": "postgres:latest",
