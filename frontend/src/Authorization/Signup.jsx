@@ -100,7 +100,7 @@ function SignUp() {
       })
       .catch((err) => {
         const { response } = err;
-        if (response.status === 400) {
+        if (response && response.status === 400) {
           const { data } = response;
           let errMessage = '';
           Object.keys(data).forEach((key) => {

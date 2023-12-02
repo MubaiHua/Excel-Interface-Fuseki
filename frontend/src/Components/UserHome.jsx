@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { MainContext } from '../MainContext';
 import DefineMappings from './DefineMappings';
 import DataAnalyst from './DataAnalyst';
-import '../App.css';
+import Dashboard from './DashBoard';
 
 function UserHome() {
   const {
@@ -18,7 +18,7 @@ function UserHome() {
     return <Navigate to="/login" />;
   }
   if (isUserAdmin) {
-    return <DefineMappings userID={userID} userName={userName} />;
+    return <Dashboard userID={userID} userName={userName} />;
   }
   return <DataAnalyst />;
 }

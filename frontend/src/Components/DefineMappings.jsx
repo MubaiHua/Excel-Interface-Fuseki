@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Container,
   Typography,
   Select,
   MenuItem,
   Grid,
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import { getFusekiDatasets } from '../Utils/FusekiAPI';
-import { MainContext } from '../MainContext';
 
 function DefineMappings({ userID, userName }) {
   const [datasets, setDatasets] = useState([]);
@@ -41,7 +40,7 @@ function DefineMappings({ userID, userName }) {
   }
 
   return (
-    <Container style={{ height: '100vh', paddingTop: '0%', overflow: 'hidden' }}>
+    <>
       <Typography variant="h3" align="center" gutterBottom>
         Welcome Mapping Administrator
         {' '}
@@ -66,8 +65,13 @@ function DefineMappings({ userID, userName }) {
           {/* Add content for the right half of the page */}
         </Grid>
       </Grid>
-    </Container>
+    </>
   );
 }
 
 export default DefineMappings;
+
+DefineMappings.propTypes = {
+  userID: PropTypes.number.isRequired,
+  userName: PropTypes.string.isRequired,
+};
