@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from django.core.exceptions import ImproperlyConfigured
+from corsheaders.defaults import default_headers
 # from dotenv import load_dotenv
 
 
@@ -187,5 +188,9 @@ DJOSER = {
         'user_delete': 'accounts.serializers.UserDeleteSerializer',
     }
 }
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'X-Amz-Date',
+]
 
 CORS_ORIGIN_ALLOW_ALL = True
