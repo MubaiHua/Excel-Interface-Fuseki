@@ -1,22 +1,11 @@
 version: '3.8'
 
 services:
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:8080"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - frontend
-      - backend
-
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    volumes:
-      - react_build:/frontend/build
+    image: my-custom-nginx:latest
 
   backend:
     build: ./backend/
@@ -35,6 +24,16 @@ services:
       python manage.py migrate &&
       python manage.py collectstatic --no-input &&
       gunicorn -w 3 -b 0.0.0.0:8000 --timeout 3600 --access-logfile - backend.wsgi:application"
+
+  nginx:
+    image: my-custom-nginx:latest
+    ports:
+      - "80:8080"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
 
   psqldb:
     image: postgres:latest
@@ -69,5 +68,3 @@ volumes:
   django_static:
   psqldata:
   fuseki-data:
-  react_build:
-
