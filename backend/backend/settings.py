@@ -168,6 +168,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
 }
 
+DOMAIN = "localhost:3000"
 SITE_NAME = "Excel Interface Fuseki"
 
 DJOSER = {
