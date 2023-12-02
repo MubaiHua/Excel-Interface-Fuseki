@@ -22,21 +22,39 @@
     ],
     "containerDefinitions": [
       {
-        "name": "client",
-        "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
+        "name": "nginx",
+        "image": "nginx:latest",
         "essential": true,
         "memory": 128,
         "portMappings": [
-          {
-            "hostPort": 80,
-            "containerPort": 80
-          }
+            {
+                "hostPort": 80,
+                "containerPort": 80
+            }
         ],
         "logConfiguration": {
           "logDriver": "awslogs",
           "options": {
               "awslogs-create-group": "true",
-              "awslogs-group": "awslogs-client",
+              "awslogs-group": "awslogs-nginx",
+              "awslogs-region": "us-west-1",
+              "awslogs-stream-prefix": "awslogs-example"
+          }
+        }
+      },
+      {
+
+        "name": "frontend",
+        "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
+        "essential": true,
+        "memory": 128,
+        "portMappings": [
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-create-group": "true",
+              "awslogs-group": "awslogs-frontend",
               "awslogs-region": "us-west-1",
               "awslogs-stream-prefix": "awslogs-example"
           }
