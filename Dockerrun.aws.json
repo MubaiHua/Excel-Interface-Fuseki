@@ -1,0 +1,299 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+      {
+          "command": [
+              "sh",
+              "-c",
+              "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --no-input && gunicorn -w 3 -b 0.0.0.0:8000 --timeout 3600 --access-logfile - backend.wsgi:application"
+          ],
+          "environment": [
+            {
+              "name": "CODE_ENV",
+              "value": "prod"
+            },
+            {
+              "name": "SECRET_KEY",
+              "value": "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6"
+            },
+            {
+              "name": "DEBUG",
+              "value": "TRUE"
+            },
+            {
+              "name": "DJANGO_ALLOWED_HOSTS",
+              "value": "13.56.88.70"
+            },
+            {
+              "name": "DB_ENGINE",
+              "value": "django.db.backends.postgresql_psycopg2"
+            },
+            {
+              "name": "POSTGRES_PASSWORD",
+              "value": "123456"
+            },
+            {
+              "name": "POSTGRES_USER",
+              "value": "admin"
+            },
+            {
+              "name": "POSTGRES_DB",
+              "value": "postgres"
+            },
+            {
+              "name": "POSTGRES_PORT",
+              "value": "5432"
+            },
+            {
+              "name": "POSTGRES_HOST",
+              "value": "psqldb"
+            },
+            {
+              "name": "SITE_NAME",
+              "value": "Excel Interface Fuseki"
+            },
+            {
+              "name": "DOMAIN",
+              "value": "13.56.88.70"
+            }
+          ],
+          "essential": true,
+          "links": [
+            "psqldb", "fuseki"
+          ],
+          "memory": 512,
+          "cpu": 512,
+          "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-backend:latest",
+          "mountPoints": [
+              {
+                  "containerPath": "/usr/src/django-static/",
+                  "sourceVolume": "Django_Static"
+              }
+          ],
+          "name": "backend",
+          "portMappings": [
+              {
+                  "containerPort": 8000,
+                  "hostPort": 8000
+              }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-create-group": "true",
+                "awslogs-group": "awslogs-backend",
+                "awslogs-region": "us-west-1",
+                "awslogs-stream-prefix": "awslogs-example"
+            }
+          }
+      },
+      {
+        "environment": [
+              {
+                  "name": "REACT_APP_ENDPOINT",
+                  "value": "http://13.56.88.70:8000"
+              },
+              {
+                  "name": "DISABLE_ESLINT_PLUGIN",
+                  "value": "true"
+              }
+          ],
+          "essential": true,
+          "memory": 128,
+          "cpu": 128,
+          "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
+          "name": "frontend",
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-create-group": "true",
+                "awslogs-group": "awslogs-frontend",
+                "awslogs-region": "us-west-1",
+                "awslogs-stream-prefix": "awslogs-example"
+            }
+          }
+      },
+      {
+          "environment": [
+              {
+                  "name": "ADMIN_PASSWORD",
+                  "value": "123456"
+              },
+              {
+                  "name": "ENABLE_DATA_WRITE",
+                  "value": "true"
+              },
+              {
+                  "name": "ENABLE_UPDATE",
+                  "value": "true"
+              },
+              {
+                  "name": "ENABLE_UPLOAD",
+                  "value": "true"
+              },
+              {
+                  "name": "QUERY_TIMEOUT",
+                  "value": "10000"
+              }
+          ],
+          "essential": true,
+          "memory": 2048,
+          "cpu": 512,
+          "image": "stain/jena-fuseki",
+          "mountPoints": [
+              {
+                  "containerPath": "/fuseki-base/databases",
+                  "sourceVolume": "Fuseki-Data"
+              }
+          ],
+          "name": "fuseki",
+          "portMappings": [
+              {
+                  "containerPort": 3030,
+                  "hostPort": 3030
+              }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-create-group": "true",
+                "awslogs-group": "awslogs-fuseki",
+                "awslogs-region": "us-west-1",
+                "awslogs-stream-prefix": "awslogs-example"
+            }
+          }
+      },
+      {
+          "essential": true,
+          "links": [
+            "frontend", "backend"
+          ],
+          "memory": 128,
+          "cpu": 128,
+          "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
+          "mountPoints": [
+              {
+                  "containerPath": "/etc/nginx/conf.d/default.conf",
+                  "sourceVolume": "_NginxDefault_Conf"
+              }
+          ],
+          "name": "nginx",
+          "portMappings": [
+              {
+                  "containerPort": 8080,
+                  "hostPort": 80
+              }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-create-group": "true",
+                "awslogs-group": "awslogs-nginx",
+                "awslogs-region": "us-west-1",
+                "awslogs-stream-prefix": "awslogs-example"
+            }
+          }
+      },
+      {
+        "environment": [
+          {
+            "name": "SECRET_KEY",
+            "value": "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6"
+          },
+          {
+            "name": "DEBUG",
+            "value": "TRUE"
+          },
+          {
+            "name": "DJANGO_ALLOWED_HOSTS",
+            "value": "13.56.88.70"
+          },
+          {
+            "name": "DB_ENGINE",
+            "value": "django.db.backends.postgresql_psycopg2"
+          },
+          {
+            "name": "POSTGRES_PASSWORD",
+            "value": "123456"
+          },
+          {
+            "name": "POSTGRES_USER",
+            "value": "admin"
+          },
+          {
+            "name": "POSTGRES_DB",
+            "value": "postgres"
+          },
+          {
+            "name": "POSTGRES_PORT",
+            "value": "5432"
+          },
+          {
+            "name": "POSTGRES_HOST",
+            "value": "psqldb"
+          },
+          {
+            "name": "SITE_NAME",
+            "value": "Excel Interface Fuseki"
+          },
+          {
+            "name": "DOMAIN",
+            "value": "13.56.88.70"
+          }
+        ],
+          "essential": true,
+          "memory": 256,
+          "cpu": 256,
+          "image": "postgres:latest",
+          "mountPoints": [
+              {
+                  "containerPath": "/var/lib/postgresql/data/",
+                  "sourceVolume": "Psqldata"
+              }
+          ],
+          "name": "psqldb",
+          "portMappings": [
+              {
+                  "containerPort": 5432,
+                  "hostPort": 5432
+              }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-create-group": "true",
+                "awslogs-group": "awslogs-psqldb",
+                "awslogs-region": "us-west-1",
+                "awslogs-stream-prefix": "awslogs-example"
+            }
+          }
+      }
+  ],
+  "family": "",
+  "volumes": [
+      {
+          "host": {
+              "sourcePath": "django_static"
+          },
+          "name": "Django_Static"
+      },
+      {
+          "host": {
+            "sourcePath": "/var/app/current/nginx/default.conf"
+          },
+          "name": "_NginxDefault_Conf"
+      },
+      {
+          "host": {
+              "sourcePath": "psqldata"
+          },
+          "name": "Psqldata"
+      },
+      {
+          "host": {
+              "sourcePath": "fuseki-data"
+          },
+          "name": "Fuseki-Data"
+      }
+  ]
+}

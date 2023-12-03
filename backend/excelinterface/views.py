@@ -5,13 +5,14 @@ from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
 import requests, json, csv
 from requests.auth import HTTPBasicAuth
+from django.conf import settings
 from rest_framework import status, viewsets
 from .models import DatabaseModel, MappingModel, InportDataModel
 from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
-import tempfile
 from . import functions
 import io
 
+FUSEKI_END_POINT = settings.FUSEKI_END_POINT
 username = 'admin'
 password = '123456'
 auth_obj = HTTPBasicAuth(username, password)
@@ -19,18 +20,18 @@ auth_obj = HTTPBasicAuth(username, password)
 
 @api_view(['GET'])
 def list_fuseki_datasets(request):
-    fuseki_server_url = 'http://localhost:3030/$/datasets'
+    fuseki_server_url = f'{FUSEKI_END_POINT}/$/datasets'
     try:
         # GET request to the Fuseki server to retrieve datasets
         response = requests.get(fuseki_server_url, auth=auth_obj)
-        response.raise_for_status()  # will raise an HTTPError if an error occurs
+        # response.raise_for_status()  # will raise an HTTPError if an error occurs
         datasets = response.json()
         db_names = []
         for dataset in datasets['datasets']:
             db_names.append(dataset['ds.name'][1:])
         return Response(db_names)
 
-    except requests.RequestException as e:
+    except Exception as e:
         error_message = str(e)
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -38,8 +39,8 @@ def list_fuseki_datasets(request):
 @api_view(['GET'])
 def get_database_types(request):
     db_name = 'music'
-    # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    # fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+    fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
     sparql_str = """
     SELECT distinct?type
     {
@@ -94,7 +95,7 @@ def update_database(request):
     else:
         return Response(response_data, status=200)
 
-
+      
 @api_view(['GET'])
 def get_type_predicates(request):
     db_name = 'music'
@@ -190,7 +191,7 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
         }
 
         # Make another API call with the data
-        api_url = 'http://localhost:3030/$/datasets'
+        api_url = f'{FUSEKI_END_POINT}/$/datasets'
         created = False
         try:
             response = requests.post(api_url, data=data_to_send, auth=auth_obj)
@@ -212,7 +213,7 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                     data['graph_name'] = request.data['graphName']
 
                 try:
-                    url = f'http://localhost:3030/{databaseName}/data'
+                    url = f'{FUSEKI_END_POINT}/{databaseName}/data'
 
                     # Create a temporary file and write the string data to it
                     in_memory_file = io.StringIO(rdf_turtle)
@@ -229,18 +230,16 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                             headers = self.get_success_headers(serializer.data)
                             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
                         else:
-                            requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
+                            requests.delete(f"{FUSEKI_END_POINT}/$/datasets/{databaseName}")
                             return Response({'error': serializer.errors}, status=400)
                     else:
                         return Response({'error': 'Fail to create new database'}, status=400)
                 except Exception as e:
-                    print(e)
                     if created:
-                        requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
-                    return Response({'message': 'Fail to create new database'}, status=400)
+                        requests.delete(f"{FUSEKI_END_POINT}/$/datasets/{databaseName}")
+                    return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
             else:
                 return Response({'message': 'Fail to create new database'}, status=400)
-        except requests.RequestException as e:
-            print(e)
-            return Response({'message': 'Fail to create new database'}, status=400)
+        except Exception as e:
+            return Response({'message': 'Fail to create new database', 'error': e}, status=400)

@@ -1,0 +1,21 @@
+name: Deployment CI
+
+env:
+  PIPELINE_ID: ${{ github.run_id }}-${{ github.run_number }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Docker Compose
+        run: docker-compose up -d

@@ -22,7 +22,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true REACT_APP_ENDPOINT=http://13.56.88.70:8000 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
