@@ -156,7 +156,7 @@
       {
           "essential": true,
           "links": [
-            "frontend", "backend", "fuseki"
+            "frontend", "backend"
           ],
           "memory": 128,
           "cpu": 128,
