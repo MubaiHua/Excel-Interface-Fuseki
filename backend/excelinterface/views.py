@@ -5,11 +5,17 @@ from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
 import requests, json, csv
 from requests.auth import HTTPBasicAuth
+from rest_framework import status, viewsets
+from .models import DatabaseModel, MappingModel, InportDataModel
+from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
+import tempfile
 from . import functions
+import io
 
 username = 'admin'
 password = '123456'
 auth_obj = HTTPBasicAuth(username, password)
+
 
 @api_view(['GET'])
 def list_fuseki_datasets(request):
@@ -26,9 +32,8 @@ def list_fuseki_datasets(request):
 
     except requests.RequestException as e:
         error_message = str(e)
-        if response:
-            error_message += f", Response text: {response.text}"
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 def get_database_types(request):
@@ -52,31 +57,6 @@ def get_database_types(request):
 
     return Response(type_names)
 
-@api_view(['POST'])
-def create_database(request):
-    # Assuming you receive some data in the request
-    turtle_file = request.FILES['turtle_file']
-    data_to_send = {
-        'dbName': 'newDB',
-        'dbType': 'tdb2'
-        # Add other data as needed
-    }
-
-    # Make another API call with the data
-    api_url = 'http://localhost:3030/$/datasets'
-    try:
-        response = requests.post(api_url, data=data_to_send, auth=auth_obj)
-        # You can handle the response as needed
-        if response.status_code == 200:
-            # Successful API call
-            return Response({'message': 'API call successful'})
-        else:
-            # Handle other response codes
-            return Response({'message': 'API call failed'}, status=400)
-    except requests.RequestException as e:
-        # Handle exceptions, e.g., connection error
-        return Response({'message': f'Error: {str(e)}'}, status=400)
-    
 
 @api_view(['POST'])
 def update_database(request):
@@ -87,32 +67,33 @@ def update_database(request):
         new_triples = functions.csv_to_triples(csv_file)
     except:
         return Response({'message': 'File format incorrect'}, status=400)
-    
-    #need to query psql server for the old triples of csv_file
-    #harcoded old_triple for now
+
+    # need to query psql server for the old triples of csv_file
+    # harcoded old_triple for now
     before_triples = new_triples
     new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
-    #print(f"the new triples are {new_triples}")
-    #get update query for fuseki
+    # print(f"the new triples are {new_triples}")
+    # get update query for fuseki
     db_name = "music"
     update_query_str = functions.get_update_query(before_triples, new_triples)
-    #print(update_query_str)
+    # print(update_query_str)
     fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
 
     query_result = fuseki_update.run_sparql(update_query_str)
-    
-    #return update_result and turn it into Response format to send back to post request
+
+    # return update_result and turn it into Response format to send back to post request
 
     response_json = query_result.convert()
     response_data = {
-            'message' : response_json['message'],
+        'message': response_json['message'],
     }
-    #print(response_json)
+    # print(response_json)
     if response_json['message'] != "Update succeeded":
         print("huh")
-        return Response(response_data, status=500)
+        return Response(response_data, status=400)
     else:
         return Response(response_data, status=200)
+
 
 @api_view(['GET'])
 def get_type_predicates(request):
@@ -120,11 +101,11 @@ def get_type_predicates(request):
     selectedType = 'Album'
     predicate_name = 'p'
     prefix_string = \
-    """
-    prefix : <http://stardog.com/tutorial/>
-    prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-    """
+        """
+        prefix : <http://stardog.com/tutorial/>
+        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+        """
 
     sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
     # print(sparql_query)
@@ -142,6 +123,7 @@ def get_type_predicates(request):
         predicates_names.append(name)
     # print(response_json)
     return Response(predicates_names)
+
 
 @api_view(['GET'])
 def generate_query(request):
@@ -192,74 +174,73 @@ def generate_query(request):
     response = {'query': sparql_query, 'file_to_download': csv_file_path}
     return Response(response)
 
-# @api_view(['GET'])
-# def get(request):
-#     fuseki_update = FusekiUpdate('http://localhost:3030', 'message')
-#     fuseki_query = FusekiQuery('http://localhost:3030', 'message')
-#     sparql_str = """
-#     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#     PREFIX ex: <http://example.com/>
-#     SELECT ?from ?msg ?subj
-#     WHERE {
-#       ?msg rdf:type ex:msg ;
-#            ex:from ?from ;
-#            ex:to "bob" ;
-#            ex:subj ?subj .
-#     }
-#             """
-#     query_result = fuseki_query.run_sparql(sparql_str)
-#     response_json = query_result.convert()
-#     print(response_json)
-#     return Response({'message': 'Hello, world!'})
 
-# @api_view(['GET'])
-# def list_dataset_types(request):
-#     db_name = request.database
-#     fuseki_server_url = f'http://localhost:3030/$/datasets/{db_name}/query'
-#     try:
-#         username = 'admin'
-#         password = '123456'
-#
-#         # GET request to the Fuseki server to retrieve datasets
-#         response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
-#         response.raise_for_status()  # will raise an HTTPError if an error occurs
-#         datasets = response.json()
-#         db_names = []
-#         for dataset in datasets['datasets']:
-#             db_names.append(dataset['ds.name'][1:])
-#         return Response(db_names)
-#
-#     except requests.RequestException as e:
-#         error_message = str(e)
-#         if response:
-#             error_message += f", Response text: {response.text}"
-#         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# @api_view(['GET'])
-# def list_fuseki_datasets(request):
-#     fuseki_server_url = 'http://localhost:3030/$/datasets'
-#     try:
-#         username = 'admin'
-#         password = '123456'
-#
-#         # GET request to the Fuseki server to retrieve datasets
-#         response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
-#         response.raise_for_status()  # will raise an HTTPError if an error occurs
-#         datasets = Response(response.json())
-#         # names = response.json()
-#         # names = [dataset["ds.name"] for dataset in datasets]
-#         # python_ds = [dataset for dataset in json.loads(datasets)]
-#         # names = [dataset['ds.name'] for dataset in python_ds].json()
-#         # python_obj = json.load(datasets)
-#         print(type(datasets))
-#         for dataset in datasets['datasets']:
-#             print(dataset['ds.name'])
-#         # for key in datasets.keys():
-#         #     print
-#         # datasets = datasets.json()
-#         return Response(datasets)
-#
-#     except requests.RequestException as e:
-#         error_message = str(e)
-#         if response:
-#             error_message += f", Response text: {response.text}"
-#         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class DatabaseModelViewSet(viewsets.ModelViewSet):
+    queryset = DatabaseModel.objects.all()
+    serializer_class = DatabaseModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        # Assuming you receive some data in the request
+        databaseName = request.data['databaseName']
+
+        data_to_send = {
+            'dbName': databaseName,
+            'dbType': 'tdb2'
+            # Add other data as needed
+        }
+
+        # Make another API call with the data
+        api_url = 'http://localhost:3030/$/datasets'
+        created = False
+        try:
+            response = requests.post(api_url, data=data_to_send, auth=auth_obj)
+            if response.status_code == 200:
+                created = True
+                rdf_turtle = request.data['fileContent']
+                prefix_lines = []
+
+                for line in rdf_turtle.split('\n'):
+                    if line.strip().startswith("PREFIX"):
+                        prefix_lines.append(line.strip())
+
+                data = {
+                    'name': databaseName,
+                    'turtle_file': rdf_turtle,
+                    'prefix': prefix_lines
+                }
+                if 'graphName' in request.data:
+                    data['graph_name'] = request.data['graphName']
+
+                try:
+                    url = f'http://localhost:3030/{databaseName}/data'
+
+                    # Create a temporary file and write the string data to it
+                    in_memory_file = io.StringIO(rdf_turtle)
+
+                    # Use the temporary file in the request
+                    with in_memory_file as file:
+                        files = {'file': (f"{databaseName}.ttl", file.read(), 'text/turtle')}
+
+                    response = requests.post(url, files=files, auth=auth_obj)
+                    if response.status_code == 200:
+                        serializer = self.serializer_class(data=data, many=False)
+                        if serializer.is_valid():
+                            serializer.save()
+                            headers = self.get_success_headers(serializer.data)
+                            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+                        else:
+                            requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
+                            return Response({'error': serializer.errors}, status=400)
+                    else:
+                        return Response({'error': 'Fail to create new database'}, status=400)
+                except Exception as e:
+                    print(e)
+                    if created:
+                        requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
+                    return Response({'message': 'Fail to create new database'}, status=400)
+
+            else:
+                return Response({'message': 'Fail to create new database'}, status=400)
+        except requests.RequestException as e:
+            print(e)
+            return Response({'message': 'Fail to create new database'}, status=400)

@@ -11,7 +11,6 @@ export default class AuthAPI {
       .then((response) => response.data)
       .catch((error) => {
         console.error(`Error in POST request to ${endpoint}:`, error);
-        throw error;
       });
   }
 
