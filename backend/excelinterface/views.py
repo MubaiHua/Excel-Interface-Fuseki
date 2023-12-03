@@ -15,14 +15,14 @@ def list_fuseki_datasets(request):
     try:
         # GET request to the Fuseki server to retrieve datasets
         response = requests.get(fuseki_server_url, auth=auth_obj)
-        response.raise_for_status()  # will raise an HTTPError if an error occurs
+        # response.raise_for_status()  # will raise an HTTPError if an error occurs
         datasets = response.json()
         db_names = []
         for dataset in datasets['datasets']:
             db_names.append(dataset['ds.name'][1:])
         return Response(db_names)
 
-    except requests.RequestException as e:
+    except Exception as e:
         error_message = str(e)
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -60,7 +60,7 @@ def create_databse(request):
     }
 
     # Make another API call with the data
-    api_url = 'http://13.56.88.70:3030//$/datasets'
+    api_url = 'http://13.56.88.70:3030/$/datasets'
     try:
         response = requests.post(api_url, data=data_to_send, auth=auth_obj)
         # You can handle the response as needed
@@ -70,7 +70,7 @@ def create_databse(request):
         else:
             # Handle other response codes
             return Response({'message': 'API call failed'}, status=400)
-    except requests.RequestException as e:
+    except Exception as e:
         # Handle exceptions, e.g., connection error
         return Response({'message': f'Error: {str(e)}'}, status=400)
 
