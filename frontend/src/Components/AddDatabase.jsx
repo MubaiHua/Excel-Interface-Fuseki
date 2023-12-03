@@ -11,6 +11,7 @@ import { addDatabaseFile } from '../Utils/FusekiAPI';
 function FileUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [databaseName, setDatabaseName] = useState('');
+  const [hasSpaceInDatabaseName, setHasSpaceInDatabaseName] = useState(false);
   // const [graphName, setGraphName] = useState('');
 
   const sendFileContent = async (fileContent) => {
@@ -21,10 +22,11 @@ function FileUpload() {
 
     addDatabaseFile(requestData)
       .then((data) => {
-        console.log(data);
+        alert(`Successfully create database ${data.name}`);
       })
       .catch((error) => {
         console.error('Error:', error);
+        alert('Please make sure database name is unique, and the uploaded file format is correct');
       });
   };
 
@@ -32,16 +34,6 @@ function FileUpload() {
     const file = acceptedFiles[0];
     if (file) {
       setSelectedFile(file);
-
-      // Read the content of the file as text
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const fileContent = event.target.result;
-
-        // Send the file content as a string to the server or perform additional processing
-        sendFileContent(fileContent);
-      };
-      reader.readAsText(file);
     }
   }, []);
 
@@ -80,7 +72,13 @@ function FileUpload() {
         margin="normal"
         fullWidth
         value={databaseName}
-        onChange={(e) => setDatabaseName(e.target.value)}
+        onChange={(e) => {
+          setDatabaseName(e.target.value);
+          // Check if the updated databaseName contains a space
+          setHasSpaceInDatabaseName(e.target.value.includes(' '));
+        }}
+        error={hasSpaceInDatabaseName}
+        helperText={hasSpaceInDatabaseName ? 'Database name should not contain spaces' : ''}
       />
       {/* <TextField
         label="Graph Name"
@@ -118,7 +116,7 @@ function FileUpload() {
         variant="contained"
         color="primary"
         onClick={handleSubmit}
-        disabled={!selectedFile || !databaseName}
+        disabled={!selectedFile || !databaseName || hasSpaceInDatabaseName}
         sx={{ marginTop: '16px' }}
       >
         Submit

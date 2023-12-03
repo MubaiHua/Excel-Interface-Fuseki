@@ -10,6 +10,7 @@ from .models import DatabaseModel, MappingModel, InportDataModel
 from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
 import tempfile
 from . import functions
+import io
 
 username = 'admin'
 password = '123456'
@@ -31,8 +32,6 @@ def list_fuseki_datasets(request):
 
     except requests.RequestException as e:
         error_message = str(e)
-        if response:
-            error_message += f", Response text: {response.text}"
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -192,9 +191,11 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
 
         # Make another API call with the data
         api_url = 'http://localhost:3030/$/datasets'
+        created = False
         try:
-            # response = requests.post(api_url, data=data_to_send, auth=auth_obj)
-            if 200 == 200:
+            response = requests.post(api_url, data=data_to_send, auth=auth_obj)
+            if response.status_code == 200:
+                created = True
                 rdf_turtle = request.data['fileContent']
                 prefix_lines = []
 
@@ -212,24 +213,30 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
 
                 try:
                     url = f'http://localhost:3030/{databaseName}/data'
-                    headers = {'Content-Type': 'multipart/form-data'}
+
                     # Create a temporary file and write the string data to it
-                    with tempfile.NamedTemporaryFile(mode='w+', suffix='.ttl', delete=False) as temp_file:
-                        temp_file.write(rdf_turtle)
+                    in_memory_file = io.StringIO(rdf_turtle)
+
                     # Use the temporary file in the request
-                    files = {f'{databaseName}.ttl': open(temp_file.name, 'rb')}
-                    response = requests.post(url, headers=headers, files=files, auth=auth_obj)
-                    temp_file.close()
+                    with in_memory_file as file:
+                        files = {'file': (f"{databaseName}.ttl", file.read(), 'text/turtle')}
+
+                    response = requests.post(url, files=files, auth=auth_obj)
                     if response.status_code == 200:
                         serializer = self.serializer_class(data=data, many=False)
                         if serializer.is_valid():
                             serializer.save()
                             headers = self.get_success_headers(serializer.data)
                             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-                        return Response({'message': 'Fail to create new database'}, status=400)
+                        else:
+                            requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
+                            return Response({'error': serializer.errors}, status=400)
                     else:
-                        return Response({'message': 'Fail to create new database'}, status=400)
-                except:
+                        return Response({'error': 'Fail to create new database'}, status=400)
+                except Exception as e:
+                    print(e)
+                    if created:
+                        requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
                     return Response({'message': 'Fail to create new database'}, status=400)
 
             else:
