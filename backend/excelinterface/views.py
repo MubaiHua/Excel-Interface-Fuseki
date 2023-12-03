@@ -4,14 +4,16 @@ from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
 import requests
 from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
+FUSEKI_END_POINT = settings.FUSEKI_END_POINT
 username = 'admin'
 password = '123456'
 auth_obj = HTTPBasicAuth(username, password)
 
 @api_view(['GET'])
 def list_fuseki_datasets(request):
-    fuseki_server_url = 'http://13.56.88.70:3030/$/datasets'
+    fuseki_server_url = f'{FUSEKI_END_POINT}/$/datasets'
     try:
         # GET request to the Fuseki server to retrieve datasets
         response = requests.get(fuseki_server_url, auth=auth_obj)
@@ -29,8 +31,8 @@ def list_fuseki_datasets(request):
 @api_view(['GET'])
 def get_database_types(request):
     db_name = 'music'
-    # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://13.56.88.70:3030', db_name)
+    # fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+    fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
     sparql_str = """
     SELECT distinct?type
     {
@@ -60,7 +62,7 @@ def create_databse(request):
     }
 
     # Make another API call with the data
-    api_url = 'http://13.56.88.70:3030/$/datasets'
+    api_url = f'{FUSEKI_END_POINT}/$/datasets'
     try:
         response = requests.post(api_url, data=data_to_send, auth=auth_obj)
         # You can handle the response as needed

@@ -88,6 +88,16 @@
           }
       },
       {
+        "environment": [
+              {
+                  "name": "REACT_APP_ENDPOINT",
+                  "value": "http://13.56.88.70:8000"
+              },
+              {
+                  "name": "DISABLE_ESLINT_PLUGIN",
+                  "value": "true"
+              }
+          ],
           "essential": true,
           "memory": 128,
           "cpu": 128,

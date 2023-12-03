@@ -27,7 +27,7 @@ from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+ENVIRONMENT = os.environ.get("CODE_ENV")
 # # Determine the code environment for setting environment variables
 # ENVIRONMENT = os.environ.get("CODE_ENV")
 # if ENVIRONMENT == 'dev':
@@ -48,7 +48,8 @@ SECRET_KEY = "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['backend', '127.0.0.1', 'localhost', '13.56.88.70', 'fusekiexcelconvert.us-west-1.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['backend', '127.0.0.1', 'localhost', '13.56.88.70',
+                 'fusekiexcelconvert.us-west-1.elasticbeanstalk.com']
 
 # Application definition
 
@@ -106,7 +107,7 @@ DATABASES = {
         'NAME': "postgres",
         'USER': "admin",
         'PASSWORD': "123456",
-        'HOST': "psqldb",
+        'HOST': "psqldb" if ENVIRONMENT == 'prod' else "localhost",
         'PORT': 5432,
     }
 }
@@ -171,7 +172,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-DOMAIN = "13.56.88.70"
+DOMAIN = "13.56.88.70" if ENVIRONMENT == 'prod' else "localhost:3000"
 SITE_NAME = "Excel Interface Fuseki"
 
 DJOSER = {
@@ -196,3 +197,5 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+FUSEKI_END_POINT = "http://13.56.88.70:3030" if ENVIRONMENT == 'prod' else "http://localhost:3030"
