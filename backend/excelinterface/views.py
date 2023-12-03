@@ -202,9 +202,9 @@ class MappingModelViewSet(viewsets.ModelViewSet):
     serializer_class = MappingModelSerializer
 
     def create(self, request, *args, **kwargs):
-        db_name = request['dbName']
-        selectedType = request['selectedType']
-        selectedPredicates = request['selectedPredicates']
+        db_name = request.data['dbName']
+        selectedType = request.data['selectedType']
+        selectedPredicates = request.data['selectedPredicates']
         db_object = DatabaseModel.objects.get(name=db_name)
         prefix_list = db_object.prefix
         prefix_string = "\n".join(prefix_list)
@@ -215,7 +215,7 @@ class MappingModelViewSet(viewsets.ModelViewSet):
 
         data = {
             'db_id': db_object.id,
-            'query': db_object
+            'query': sparql_query
         }
 
         serializer = self.serializer_class(data = data, many=False)

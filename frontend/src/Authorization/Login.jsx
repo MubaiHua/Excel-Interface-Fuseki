@@ -78,9 +78,6 @@ function Login() {
             })
             .then((id) => {
               navigate(`/home/${id}`);
-            })
-            .catch(() => {
-              alert('fail to get user information');
             });
         })
         .catch(() => {
