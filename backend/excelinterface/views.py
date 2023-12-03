@@ -5,6 +5,7 @@ from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
 import requests
 from requests.auth import HTTPBasicAuth
+from . import functions
 
 username = 'admin'
 password = '123456'
@@ -52,7 +53,7 @@ def get_database_types(request):
     return Response(type_names)
 
 @api_view(['POST'])
-def create_databse(request):
+def create_database(request):
     # Assuming you receive some data in the request
     turtle_file = request.FILES['turtle_file']
 
@@ -76,6 +77,43 @@ def create_databse(request):
     except requests.RequestException as e:
         # Handle exceptions, e.g., connection error
         return Response({'message': f'Error: {str(e)}'}, status=400)
+    
+
+@api_view(['POST'])
+def update_database(request):
+    csv_file = request.FILES['excel_sheet']
+    print(csv_file)
+    try:
+        csv_file = csv_file.read().decode('utf-8')
+        new_triples = functions.csv_to_triples(csv_file)
+    except:
+        return Response({'message': 'File format incorrect'}, status=400)
+    
+    #need to query psql server for the old triples of csv_file
+    #harcoded old_triple for now
+    before_triples = new_triples
+    new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
+    #print(f"the new triples are {new_triples}")
+    #get update query for fuseki
+    db_name = "music"
+    update_query_str = functions.get_update_query(before_triples, new_triples)
+    #print(update_query_str)
+    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+
+    query_result = fuseki_update.run_sparql(update_query_str)
+    
+    #return update_result and turn it into Response format to send back to post request
+
+    response_json = query_result.convert()
+    response_data = {
+            'message' : response_json['message'],
+    }
+    #print(response_json)
+    if response_json['message'] != "Update succeeded":
+        print("huh")
+        return Response(response_data, status=500)
+    else:
+        return Response(response_data, status=200)
 
 @api_view(['GET'])
 def get_type_predicates(request):
