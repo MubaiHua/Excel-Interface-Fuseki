@@ -8,48 +8,17 @@ import TextField from '@mui/material/TextField';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-export default function AddDatabase() {
+function FileUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [databaseName, setDatabaseName] = useState('');
   const [graphName, setGraphName] = useState('');
 
-  const readBinaryFile = (file, callback) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const arrayBuffer = event.target.result;
-      const dataView = new DataView(arrayBuffer);
-
-      // Assuming your binary file has a specific structure, you need to implement your own logic to parse it
-      // This is just a placeholder example, adjust it based on the actual structure of your binary data
-      for (let i = 0; i < dataView.byteLength; i += 8) {
-        const line = dataView.getFloat64(i); // Adjust the method based on your data type
-        callback(line.toString()); // Convert each line to a string and send it to the callback
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setSelectedFile(file);
-
-      // Read the binary file line by line
-      readBinaryFile(file, (line) => {
-        // Process each line as needed
-        console.log('Parsed line:', line);
-
-        // You can send each line to the server or perform additional processing
-      });
-    }
-  }, []);
-
-  const handleSubmit = async () => {
+  const sendFileContent = async (fileContent) => {
     // Perform the API call using Axios
     try {
       // Prepare the data to be sent to the server
       const requestData = {
-        fileContent: selectedFile, // Assuming selectedFile contains the binary file
+        fileContent, // Sending the entire file content as a string
         databaseName,
         graphName,
       };
@@ -65,6 +34,40 @@ export default function AddDatabase() {
     }
   };
 
+  const onDrop = useCallback((acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setSelectedFile(file);
+
+      // Read the content of the file as text
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+
+        // Send the file content as a string to the server or perform additional processing
+        sendFileContent(fileContent);
+      };
+      reader.readAsText(file);
+    }
+  }, []);
+
+  const handleSubmit = async () => {
+    // Check if a file has been selected
+    if (!selectedFile) {
+      return;
+    }
+
+    // Read the content of the file as text
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fileContent = event.target.result;
+
+      // Send the file content as a string to the server or perform additional processing
+      sendFileContent(fileContent);
+    };
+    reader.readAsText(selectedFile);
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, maxFiles: 1 });
 
   return (
@@ -74,7 +77,7 @@ export default function AddDatabase() {
       </Typography>
 
       <Typography variant="h6" sx={{ marginBottom: '8px' }}>
-        Please upload your binary file
+        Please upload your text file
       </Typography>
 
       <TextField
@@ -129,3 +132,5 @@ export default function AddDatabase() {
     </div>
   );
 }
+
+export default FileUpload;

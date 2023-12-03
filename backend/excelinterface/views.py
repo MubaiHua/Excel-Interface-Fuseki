@@ -4,10 +4,14 @@ from pyfuseki import FusekiUpdate, FusekiQuery
 from rest_framework.decorators import api_view
 import requests
 from requests.auth import HTTPBasicAuth
+from rest_framework import status, viewsets
+from .models import DatabaseModel, MappingModel, InportDataModel
+from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
 
 username = 'admin'
 password = '123456'
 auth_obj = HTTPBasicAuth(username, password)
+
 
 @api_view(['GET'])
 def list_fuseki_datasets(request):
@@ -49,39 +53,6 @@ def get_database_types(request):
         type_names.append(name)
 
     return Response(type_names)
-
-@api_view(['POST'])
-def create_databse(request):
-    # Assuming you receive some data in the request
-    turtle_file = request.FILES['turtle_file']
-
-    data_to_send = {
-        'dbName': 'newDB',
-        'dbType': 'tdb2'
-        # Add other data as needed
-    }
-
-    # Make another API call with the data
-    api_url = 'http://localhost:3030/$/datasets'
-    try:
-        response = requests.post(api_url, data=data_to_send, auth=auth_obj)
-        # You can handle the response as needed
-        if response.status_code == 200:
-            # Successful API call
-            return Response({'message': 'API call successful'})
-        else:
-            # Handle other response codes
-            return Response({'message': 'API call failed'}, status=400)
-    except requests.RequestException as e:
-        # Handle exceptions, e.g., connection error
-        return Response({'message': f'Error: {str(e)}'}, status=400)
-
-
-
-
-
-
-
 
 
 # @api_view(['GET'])
@@ -155,3 +126,33 @@ def create_databse(request):
 #         if response:
 #             error_message += f", Response text: {response.text}"
 #         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DatabaseModelViewSet(viewsets.ModelViewSet):
+    queryset = DatabaseModel.objects.all()
+    serializer_class = DatabaseModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        # Assuming you receive some data in the request
+        turtle_file = request.FILES['turtle_file']
+
+        data_to_send = {
+            'dbName': 'newDB',
+            'dbType': 'tdb2'
+            # Add other data as needed
+        }
+
+        # Make another API call with the data
+        api_url = 'http://localhost:3030/$/datasets'
+        try:
+            response = requests.post(api_url, data=data_to_send, auth=auth_obj)
+            # You can handle the response as needed
+            if response.status_code == 200:
+                # Successful API call
+                return Response({'message': 'API call successful'})
+            else:
+                # Handle other response codes
+                return Response({'message': 'API call failed'}, status=400)
+        except requests.RequestException as e:
+            # Handle exceptions, e.g., connection error
+            return Response({'message': f'Error: {str(e)}'}, status=400)
