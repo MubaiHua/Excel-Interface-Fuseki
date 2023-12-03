@@ -21,7 +21,8 @@ def list_fuseki_datasets(request):
         datasets = response.json()
         db_names = []
         for dataset in datasets['datasets']:
-            db_names.append(dataset['ds.name'][1:])
+            if dataset['ds.name'][1:] != 'ds':
+                db_names.append(dataset['ds.name'][1:])
         return Response(db_names)
 
     except requests.RequestException as e:
@@ -32,8 +33,10 @@ def list_fuseki_datasets(request):
 
 @api_view(['GET'])
 def get_database_types(request):
-    db_name = 'music'
-    # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    db_name = request.query_params.get('db_name', 'default')
+
+    # NEED to check whether the db_name
+    
     fuseki_query = FusekiQuery('http://localhost:3030', db_name)
     sparql_str = """
     SELECT distinct?type
@@ -51,6 +54,90 @@ def get_database_types(request):
         type_names.append(name)
 
     return Response(type_names)
+
+@api_view(['GET'])
+def get_type_predicates(request):
+    db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
+    selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
+
+    predicate_name = 'p'
+
+    # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
+    prefix_string = \
+    """
+    prefix : <http://stardog.com/tutorial/>
+    prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+    """
+
+    sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
+    # print(sparql_query)
+    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    query_result = fuseki_query.run_sparql(sparql_query)
+    response_json = query_result.convert()
+    predicates = response_json['results']['bindings']
+    predicates_names = []
+    for obj in predicates:
+        value = obj[predicate_name]['value']
+        if value[-4:] == 'type':
+            continue
+        name = value.split("/")[-1]
+        predicates_names.append(name)
+    # print(response_json)
+    return Response(predicates_names)
+
+@api_view(['GET'])
+def generate_query(request):
+    db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
+    selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
+    selectedPredicates = request.query_params.get('selectedPredicates', 'default')  # Provide a default value if not supplied['artist', 'description', 'track']
+
+    # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
+    prefix_string = \
+        """
+        prefix : <http://stardog.com/tutorial/>
+        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+        """
+    sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
+    for predicate in selectedPredicates:
+        sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
+    sparql_query += "}\n"
+    print(sparql_query)
+    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    query_result = fuseki_query.run_sparql(sparql_query)
+    response_json = query_result.convert()
+    json_data = json.dumps(response_json, indent=4)
+    # print(json_data)
+    #
+    file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/response.json'
+    # df = pd.read_json(json_data)
+    # df.to_csv("output.csv", index = False)
+    # Writing JSON data to a file
+    with open(file_path, 'w') as file:
+        file.write(json_data)
+
+    with open(file_path, 'r', encoding='utf-8') as json_file:
+        json_data = json.load(json_file)
+
+        # Extracting the data and headers
+    data = json_data['results']['bindings']
+    headers = ['album', 'artist', 'description', 'track']
+
+    # Write to the CSV file
+    csv_file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/result.csv'
+    with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=headers)
+        writer.writeheader()
+
+        for entry in data:
+            row = {key: entry[key]['value'] if key in entry else None for key in headers}
+            writer.writerow(row)
+    response = {'query': sparql_query, 'file_to_download': csv_file_path}
+    return Response(response)
+
 
 @api_view(['POST'])
 def create_database(request):
@@ -113,153 +200,3 @@ def update_database(request):
         return Response(response_data, status=500)
     else:
         return Response(response_data, status=200)
-
-@api_view(['GET'])
-def get_type_predicates(request):
-    db_name = 'music'
-    selectedType = 'Album'
-    predicate_name = 'p'
-    prefix_string = \
-    """
-    prefix : <http://stardog.com/tutorial/>
-    prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-    """
-
-    sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
-    # print(sparql_query)
-    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
-    query_result = fuseki_query.run_sparql(sparql_query)
-    response_json = query_result.convert()
-    predicates = response_json['results']['bindings']
-    predicates_names = []
-    for obj in predicates:
-        value = obj[predicate_name]['value']
-        if value[-4:] == 'type':
-            continue
-        name = value.split("/")[-1]
-        predicates_names.append(name)
-    # print(response_json)
-    return Response(predicates_names)
-
-@api_view(['GET'])
-def generate_query(request):
-    db_name = 'music'
-    selectedType = 'Album'
-    selectedPredicates = ['artist', 'description', 'track']
-    prefix_string = \
-        """
-        prefix : <http://stardog.com/tutorial/>
-        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-        """
-    sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
-    for predicate in selectedPredicates:
-        sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
-    sparql_query += "}\n"
-    print(sparql_query)
-    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
-    query_result = fuseki_query.run_sparql(sparql_query)
-    response_json = query_result.convert()
-    json_data = json.dumps(response_json, indent=4)
-    # print(json_data)
-    #
-    file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/response.json'
-    # df = pd.read_json(json_data)
-    # df.to_csv("output.csv", index = False)
-    # Writing JSON data to a file
-    with open(file_path, 'w') as file:
-        file.write(json_data)
-
-    with open(file_path, 'r', encoding='utf-8') as json_file:
-        json_data = json.load(json_file)
-
-        # Extracting the data and headers
-    data = json_data['results']['bindings']
-    headers = ['album', 'artist', 'description', 'track']
-
-    # Write to the CSV file
-    csv_file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/result.csv'
-    with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=headers)
-        writer.writeheader()
-
-        for entry in data:
-            row = {key: entry[key]['value'] if key in entry else None for key in headers}
-            writer.writerow(row)
-    response = {'query': sparql_query, 'file_to_download': csv_file_path}
-    return Response(response)
-
-# @api_view(['GET'])
-# def get(request):
-#     fuseki_update = FusekiUpdate('http://localhost:3030', 'message')
-#     fuseki_query = FusekiQuery('http://localhost:3030', 'message')
-#     sparql_str = """
-#     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#     PREFIX ex: <http://example.com/>
-#     SELECT ?from ?msg ?subj
-#     WHERE {
-#       ?msg rdf:type ex:msg ;
-#            ex:from ?from ;
-#            ex:to "bob" ;
-#            ex:subj ?subj .
-#     }
-#             """
-#     query_result = fuseki_query.run_sparql(sparql_str)
-#     response_json = query_result.convert()
-#     print(response_json)
-#     return Response({'message': 'Hello, world!'})
-
-# @api_view(['GET'])
-# def list_dataset_types(request):
-#     db_name = request.database
-#     fuseki_server_url = f'http://localhost:3030/$/datasets/{db_name}/query'
-#     try:
-#         username = 'admin'
-#         password = '123456'
-#
-#         # GET request to the Fuseki server to retrieve datasets
-#         response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
-#         response.raise_for_status()  # will raise an HTTPError if an error occurs
-#         datasets = response.json()
-#         db_names = []
-#         for dataset in datasets['datasets']:
-#             db_names.append(dataset['ds.name'][1:])
-#         return Response(db_names)
-#
-#     except requests.RequestException as e:
-#         error_message = str(e)
-#         if response:
-#             error_message += f", Response text: {response.text}"
-#         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# @api_view(['GET'])
-# def list_fuseki_datasets(request):
-#     fuseki_server_url = 'http://localhost:3030/$/datasets'
-#     try:
-#         username = 'admin'
-#         password = '123456'
-#
-#         # GET request to the Fuseki server to retrieve datasets
-#         response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
-#         response.raise_for_status()  # will raise an HTTPError if an error occurs
-#         datasets = Response(response.json())
-#         # names = response.json()
-#         # names = [dataset["ds.name"] for dataset in datasets]
-#         # python_ds = [dataset for dataset in json.loads(datasets)]
-#         # names = [dataset['ds.name'] for dataset in python_ds].json()
-#         # python_obj = json.load(datasets)
-#         print(type(datasets))
-#         for dataset in datasets['datasets']:
-#             print(dataset['ds.name'])
-#         # for key in datasets.keys():
-#         #     print
-#         # datasets = datasets.json()
-#         return Response(datasets)
-#
-#     except requests.RequestException as e:
-#         error_message = str(e)
-#         if response:
-#             error_message += f", Response text: {response.text}"
-#         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
