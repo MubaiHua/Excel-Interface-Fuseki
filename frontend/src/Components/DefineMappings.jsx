@@ -10,21 +10,35 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
-import { getFusekiDatasets } from '../Utils/FusekiAPI';
+import Checkbox from '@mui/material/Checkbox';
+
+import {
+  getFusekiDatasets, getDatabaseTypes, getTypePredicates, generateQuery,
+} from '../Utils/FusekiAPI';
 
 const steps = ['Select Database', 'Select Data Types', 'Select Attributes of the type'];
 
 export default function DefineMappings({ userName, userID }) {
-  const [activeStep, setActiveStep] = React.useState(0);
-  const [skipped, setSkipped] = React.useState(new Set());
+  const [activeStep, setActiveStep] = useState(0);
+  const [skipped, setSkipped] = useState(new Set());
 
   const [datasets, setDatasets] = useState([]);
-  const [selectedDataset, setSelectedDataset] = useState('');
+  const [selectedDatabase, setSelectedDatabase] = useState('');
+  // all the types the dataset contains
+  const [dataTypes, setDataTypes] = useState([]);
+  // type selected by the users
+  const [selectedType, setSelectedType] = useState('');
+
+  // all the predicates related to the data type selected
+  const [predicates, setPredicates] = useState([]);
+  // predicates selected by the users
+  const [selectedPredicates, setSelectedPredicates] = useState([]);
+  const [generatedQuery, setGeneratedQuery] = useState([]);
 
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
-        console.log('API Response:', response);
+        // console.log('API Response:', response);
         setDatasets(response);
       })
       .catch((err) => {
@@ -35,7 +49,18 @@ export default function DefineMappings({ userName, userID }) {
   }, [userID]);
 
   const handleDatasetChange = (event) => {
-    setSelectedDataset(event.target.value);
+    setSelectedDatabase(event.target.value);
+    setSelectedType(''); // clean selected type if user goes back from the second step
+    setSelectedPredicates([]); // clean selected type if user goes back from the third step
+  };
+
+  const handleTypeSelectionChange = (event) => {
+    setSelectedType(event.target.value);
+    setSelectedPredicates([]);// clean selected type if user goes back from the third step
+  };
+
+  const handlePredicatesSelectionChange = (event) => {
+    setSelectedPredicates(event.target.value);
   };
 
   const isStepOptional = (step) => step === 114514; // place holder for feature
@@ -49,8 +74,47 @@ export default function DefineMappings({ userName, userID }) {
       newSkipped.delete(activeStep);
     }
 
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped(newSkipped);
+    if (activeStep === 0) { // After selecting a dataset
+      getDatabaseTypes(selectedDatabase)
+        .then((response) => {
+          setDataTypes(response);
+          setActiveStep((prevActiveStep) => prevActiveStep + 1);
+          setSkipped(newSkipped);
+        })
+        .catch((error) => {
+          console.error('Error fetching data types:', error);
+          alert("Can't fetching data types");
+        });
+    } else if (activeStep === 1) { // Moving from the second to the third step
+      getTypePredicates(selectedDatabase, selectedType)
+        .then((response) => {
+          setPredicates(response);
+          setActiveStep((prevActiveStep) => prevActiveStep + 1);
+          setSkipped(newSkipped);
+        })
+        .catch((error) => {
+          console.error('Error fetching predicates:', error);
+          alert("Can't fetching predicates");
+        });
+    } else if (activeStep === 2) { // Moving from the second to the third step
+      const data = {
+        dbName: selectedDatabase,
+        selectedType,
+        selectedPredicates,
+      };
+      generateQuery(data)
+        .then((response) => {
+          console.log(response);
+          const queryLines = response.query.split('\n');
+          setGeneratedQuery(queryLines);
+          setActiveStep((prevActiveStep) => prevActiveStep + 1);
+          setSkipped(newSkipped);
+        })
+        .catch((error) => {
+          console.error('Error generating query:', error);
+          alert("Can't generate query");
+        });
+    }
   };
 
   const handleBack = () => {
@@ -105,7 +169,7 @@ export default function DefineMappings({ userName, userID }) {
               Please select the database you would like to access:
             </Typography>
             <Typography variant="h5">Fuseki Datasets</Typography>
-            <Select value={selectedDataset} onChange={handleDatasetChange} fullWidth>
+            <Select value={selectedDatabase} onChange={handleDatasetChange} fullWidth>
               {datasets.map((dataset, index) => (
                 <MenuItem key={index} value={dataset}>
                   {dataset}
@@ -113,21 +177,72 @@ export default function DefineMappings({ userName, userID }) {
               ))}
             </Select>
           </Grid>
-          <Grid item xs={6} style={{ padding: '10px' }}>
-            {/* Add content for the right half of the page */}
+        </Grid>
+      )}
+
+      {activeStep === 1 && (
+        <Grid container style={{ height: '70%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Please select your targeted data type
+            </Typography>
+            <Select
+              value={selectedType}
+              onChange={handleTypeSelectionChange}
+              fullWidth
+            >
+              {dataTypes.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
           </Grid>
         </Grid>
       )}
+
+      {activeStep === 2 && (
+        <Grid container style={{ height: '70%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Please select attributes related to the selected data type
+            </Typography>
+            <Select
+              multiple
+              value={selectedPredicates}
+              onChange={handlePredicatesSelectionChange}
+              renderValue={(selected) => selected.join(', ')}
+              fullWidth
+            >
+              {predicates.map((predicate) => (
+                <MenuItem key={predicate} value={predicate}>
+                  <Checkbox checked={selectedPredicates.indexOf(predicate) > -1} />
+                  {predicate}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+        </Grid>
+      )}
+
       {activeStep === steps.length ? (
-        <>
-          <Typography sx={{ mt: 2, mb: 1 }}>
-            This is your query
+        <div>
+          <Typography variant="subtitle1" gutterBottom style={{ paddingTop: '20px' }}>
+            This is your mapping query
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleReset}>Create a new Mapping</Button>
+          <Box
+            bgcolor="black"
+            color="white"
+            borderRadius={4}
+            p={2}
+          >
+            <Typography variant="body2" component="pre">
+              {generatedQuery.map((line, index) => (
+                <div key={index}>{line}</div>
+              ))}
+            </Typography>
           </Box>
-        </>
+        </div>
       )
         : (
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
@@ -146,7 +261,13 @@ export default function DefineMappings({ userName, userID }) {
             </Button>
             )}
 
-            <Button onClick={handleNext}>
+            <Button
+              onClick={handleNext}
+              disabled={
+                (activeStep === 0 && !selectedDatabase)
+                 || (activeStep === 1 && !selectedType)
+              }
+            >
               {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
             </Button>
           </Box>
