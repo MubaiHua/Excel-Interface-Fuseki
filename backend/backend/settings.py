@@ -171,7 +171,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-DOMAIN = "http://54.153.106.227/"
+DOMAIN = "54.153.106.227"
 SITE_NAME = "Excel Interface Fuseki"
 
 DJOSER = {

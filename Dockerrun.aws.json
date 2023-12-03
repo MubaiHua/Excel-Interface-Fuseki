@@ -22,7 +22,7 @@
             },
             {
               "name": "DJANGO_ALLOWED_HOSTS",
-              "value": "localhost"
+              "value": "54.153.106.227"
             },
             {
               "name": "DB_ENGINE",
@@ -192,7 +192,7 @@
           },
           {
             "name": "DJANGO_ALLOWED_HOSTS",
-            "value": "localhost"
+            "value": "54.153.106.227"
           },
           {
             "name": "DB_ENGINE",
