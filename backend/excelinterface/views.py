@@ -1,4 +1,4 @@
-from rdflib.plugins.sparql import prepareQuery
+# from rdflib.plugins.sparql import prepareQuery
 from rest_framework.response import Response
 from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
@@ -6,16 +6,16 @@ from rest_framework.decorators import api_view
 import requests
 from requests.auth import HTTPBasicAuth
 
+username = 'admin'
+password = '123456'
+auth_obj = HTTPBasicAuth(username, password)
 
 @api_view(['GET'])
 def list_fuseki_datasets(request):
     fuseki_server_url = 'http://localhost:3030/$/datasets'
     try:
-        username = 'admin'
-        password = '123456'
-
         # GET request to the Fuseki server to retrieve datasets
-        response = requests.get(fuseki_server_url, auth=HTTPBasicAuth(username, password))
+        response = requests.get(fuseki_server_url, auth=auth_obj)
         response.raise_for_status()  # will raise an HTTPError if an error occurs
         datasets = response.json()
         db_names = []
@@ -28,7 +28,6 @@ def list_fuseki_datasets(request):
         if response:
             error_message += f", Response text: {response.text}"
         return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['GET'])
 def get_database_types(request):
@@ -52,6 +51,31 @@ def get_database_types(request):
 
     return Response(type_names)
 
+@api_view(['POST'])
+def create_databse(request):
+    # Assuming you receive some data in the request
+    turtle_file = request.FILES['turtle_file']
+
+    data_to_send = {
+        'dbName': 'newDB',
+        'dbType': 'tdb2'
+        # Add other data as needed
+    }
+
+    # Make another API call with the data
+    api_url = 'http://localhost:3030/$/datasets'
+    try:
+        response = requests.post(api_url, data=data_to_send, auth=auth_obj)
+        # You can handle the response as needed
+        if response.status_code == 200:
+            # Successful API call
+            return Response({'message': 'API call successful'})
+        else:
+            # Handle other response codes
+            return Response({'message': 'API call failed'}, status=400)
+    except requests.RequestException as e:
+        # Handle exceptions, e.g., connection error
+        return Response({'message': f'Error: {str(e)}'}, status=400)
 
 @api_view(['GET'])
 def get_type_predicates(request):
@@ -104,6 +128,26 @@ def get_type_predicates(request):
     # response_json = query_result.convert()
     # print(response_json)
     # return Response({'message': 'Hello, world!'})
+
+# @api_view(['GET'])
+# def get(request):
+#     fuseki_update = FusekiUpdate('http://localhost:3030', 'message')
+#     fuseki_query = FusekiQuery('http://localhost:3030', 'message')
+#     sparql_str = """
+#     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#     PREFIX ex: <http://example.com/>
+#     SELECT ?from ?msg ?subj
+#     WHERE {
+#       ?msg rdf:type ex:msg ;
+#            ex:from ?from ;
+#            ex:to "bob" ;
+#            ex:subj ?subj .
+#     }
+#             """
+#     query_result = fuseki_query.run_sparql(sparql_str)
+#     response_json = query_result.convert()
+#     print(response_json)
+#     return Response({'message': 'Hello, world!'})
 
 # @api_view(['GET'])
 # def list_dataset_types(request):

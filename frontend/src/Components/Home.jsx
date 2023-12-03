@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import '../App.css';
+import React from 'react';
+import bigPicture from '../assets/Excel_Interface_Fuseki.png'; // Replace with the actual path to your picture
 
-function Home() {
+function BigPictureHome() {
   return (
     <div>
-      <h1>Welcome</h1>
-      <p>This is the home page.</p>
+      <img src={bigPicture} alt="Big Picture" style={{ width: '100%', height: '100%' }} alt="image" />
     </div>
   );
 }
 
-export default Home;
+export default BigPictureHome;
