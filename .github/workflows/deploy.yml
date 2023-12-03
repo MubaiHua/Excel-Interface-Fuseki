@@ -8,9 +8,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build-and-push:
@@ -72,13 +69,3 @@ jobs:
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
           deployment_package: "application.zip"
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run Docker Compose
-        run: docker-compose up -d
-
-      #- name: Test
