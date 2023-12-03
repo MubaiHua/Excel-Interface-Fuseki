@@ -9,7 +9,6 @@ from django.conf import settings
 from rest_framework import status, viewsets
 from .models import DatabaseModel, MappingModel, InportDataModel
 from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
-import tempfile
 from . import functions
 import io
 
@@ -192,7 +191,7 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
         }
 
         # Make another API call with the data
-        api_url = 'http://localhost:3030/$/datasets'
+        api_url = f'{FUSEKI_END_POINT}/$/datasets'
         created = False
         try:
             response = requests.post(api_url, data=data_to_send, auth=auth_obj)
@@ -214,7 +213,7 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                     data['graph_name'] = request.data['graphName']
 
                 try:
-                    url = f'http://localhost:3030/{databaseName}/data'
+                    url = f'{FUSEKI_END_POINT}/{databaseName}/data'
 
                     # Create a temporary file and write the string data to it
                     in_memory_file = io.StringIO(rdf_turtle)
@@ -231,18 +230,16 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                             headers = self.get_success_headers(serializer.data)
                             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
                         else:
-                            requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
+                            requests.delete(f"{FUSEKI_END_POINT}/$/datasets/{databaseName}")
                             return Response({'error': serializer.errors}, status=400)
                     else:
                         return Response({'error': 'Fail to create new database'}, status=400)
                 except Exception as e:
-                    print(e)
                     if created:
-                        requests.delete(f"http://localhost:3030/$/datasets/{databaseName}")
-                    return Response({'message': 'Fail to create new database'}, status=400)
+                        requests.delete(f"{FUSEKI_END_POINT}/$/datasets/{databaseName}")
+                    return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
             else:
                 return Response({'message': 'Fail to create new database'}, status=400)
-        except requests.RequestException as e:
-            print(e)
-            return Response({'message': 'Fail to create new database'}, status=400)
+        except Exception as e:
+            return Response({'message': 'Fail to create new database', 'error': e}, status=400)
