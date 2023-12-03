@@ -23,16 +23,16 @@ export default function DefineMappings({ userName, userID }) {
   const [datasets, setDatasets] = useState([]);
   const [selectedDataset, setSelectedDataset] = useState('');
 
-  const [dataTypes, setDataTypes] = React.useState([]);//all the types the dataset contains
-  const [selectedType, setSelectedType] = React.useState('');//type selected by the users
+  const [dataTypes, setDataTypes] = React.useState([]);// all the types the dataset contains
+  const [selectedType, setSelectedType] = React.useState('');// type selected by the users
 
-  const [predicates, setPredicates] = React.useState([]);//all the predicates related to the data type selected
-  const [selectedPredicates, setSelectedPredicates] = React.useState([]);//predicates selected by the users
+  const [predicates, setPredicates] = React.useState([]);// all the predicates related to the data type selected
+  const [selectedPredicates, setSelectedPredicates] = React.useState([]);// predicates selected by the users
 
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
-        //console.log('API Response:', response);
+        // console.log('API Response:', response);
         setDatasets(response);
       })
       .catch((err) => {
@@ -40,7 +40,6 @@ export default function DefineMappings({ userName, userID }) {
         alert('Failed to load datasets');
       });
     console.log(userID);
-    
   }, [userID]);
 
   const handleDatasetChange = (event) => {
@@ -69,17 +68,16 @@ export default function DefineMappings({ userName, userID }) {
       newSkipped.delete(activeStep);
     }
 
-
     if (activeStep === 0) { // After selecting a dataset
       getDatabaseTypes(selectedDataset)
-        .then(response => setDataTypes(response))
-        .catch(error => console.error('Error fetching data types:', error));
+        .then((response) => setDataTypes(response))
+        .catch((error) => console.error('Error fetching data types:', error));
     }
 
     if (activeStep === 1) { // Moving from the second to the third step
-      getTypePredicates(selectedDataset, selectedType) 
-        .then(response => setPredicates(response))
-        .catch(error => console.error('Error fetching predicates:', error));
+      getTypePredicates(selectedDataset, selectedType)
+        .then((response) => setPredicates(response))
+        .catch((error) => console.error('Error fetching predicates:', error));
     }
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -153,7 +151,7 @@ export default function DefineMappings({ userName, userID }) {
         <Grid container style={{ height: '70%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
             <Typography variant="h4" align="center" gutterBottom>
-            Please select your targeted data type
+              Please select your targeted data type
             </Typography>
             <Select
               value={selectedType}
@@ -222,10 +220,12 @@ export default function DefineMappings({ userName, userID }) {
             </Button>
             )}
 
-            <Button 
+            <Button
               onClick={handleNext}
-              disabled={activeStep === 0 && !selectedDataset ||
-                activeStep === 1 && !selectedType}
+              disabled={
+                (activeStep === 0 && !selectedDataset)
+                 || (activeStep === 1 && !selectedType)
+              }
             >
               {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
             </Button>
