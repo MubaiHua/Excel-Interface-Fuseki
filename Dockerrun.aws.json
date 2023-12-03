@@ -153,7 +153,7 @@
       {
           "essential": true,
           "links": [
-            "frontend", "frontend"
+            "frontend", "backend"
           ],
           "memory": 128,
           "image": "815829586688.dkr.ecr.us-east-2.amazonaws.com/excel-to-fuseki-frontend:latest",
