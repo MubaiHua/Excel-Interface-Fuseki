@@ -48,7 +48,7 @@ SECRET_KEY = "django-insecure-a)hd5#-_qe$kow=e+1=m0ui(0%c-lwv^f=-mp!8fo*07)m%yn6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['backend', '127.0.0.1', 'localhost', '52.8.225.13']
+ALLOWED_HOSTS = ['backend', '127.0.0.1', 'localhost', '13.56.88.70']
 
 # Application definition
 
@@ -171,7 +171,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-DOMAIN = "52.8.225.13"
+DOMAIN = "13.56.88.70"
 SITE_NAME = "Excel Interface Fuseki"
 
 DJOSER = {
