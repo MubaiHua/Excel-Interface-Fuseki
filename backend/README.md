@@ -70,7 +70,7 @@ Since the database is not yet configured, running the `runserver` command will r
     ```
 - For PSQL database name, username and password are provided in `.env` or `dev.env`.
 - To check the PSQL tables, run the command:
-    ```
+    ```shell
   docker exec -it cs130-group-project-psqldb-1 psql -U admin postgres
   ```
 - To turn database off run: 

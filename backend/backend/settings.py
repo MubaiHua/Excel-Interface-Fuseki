@@ -14,8 +14,8 @@ from pathlib import Path
 import os
 from django.core.exceptions import ImproperlyConfigured
 from corsheaders.defaults import default_headers
-# from dotenv import load_dotenv
-
+from dotenv import load_dotenv
+from datetime import timedelta
 
 # def get_env_var(env_var):
 #     try:
@@ -167,6 +167,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 DOMAIN = "52.8.13.80"

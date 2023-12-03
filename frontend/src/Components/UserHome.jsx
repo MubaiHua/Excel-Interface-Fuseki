@@ -1,24 +1,26 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { MainContext } from '../MainContext';
-import '../App.css';
+import DefineMappings from './DefineMappings';
+import DataAnalyst from './DataAnalyst';
+import Dashboard from './DashBoard';
 
 function UserHome() {
-  const { hasLogin, userName } = useContext(MainContext);
+  const {
+    hasLogin, isUserAdmin, userID, userName,
+  } = useContext(MainContext);
+
+  useEffect(() => {
+    console.log(userID);
+  }, [hasLogin, userID, isUserAdmin]);
+
   if (!hasLogin) {
     return <Navigate to="/login" />;
   }
-
-  return (
-    <div>
-      <h1>
-        Welcome
-        {' '}
-        {userName}
-      </h1>
-      <p>This is the home page.</p>
-    </div>
-  );
+  if (isUserAdmin) {
+    return <Dashboard userID={userID} userName={userName} />;
+  }
+  return <DataAnalyst />;
 }
 
 export default UserHome;
