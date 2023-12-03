@@ -54,7 +54,7 @@
             },
             {
               "name": "DOMAIN",
-              "value": "52.8.13.80"
+              "value": "54.153.106.227"
             }
           ],
           "essential": true,
@@ -224,7 +224,7 @@
           },
           {
             "name": "DOMAIN",
-            "value": "52.8.13.80"
+            "value": "54.153.106.227"
           }
         ],
           "essential": true,
