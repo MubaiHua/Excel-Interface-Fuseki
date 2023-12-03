@@ -48,21 +48,22 @@ function NavBar() {
           </Typography>
         </div>
         )}
-
-        {hasLogin ? (
-          <Button color="inherit" onClick={handleLogout}>
-            Logout
-          </Button>
-        ) : (
-          <>
-            <Button color="inherit" component={RouterLink} to="/signup">
-              Sign Up
+        <div style={{ display: 'flex', alignItems: 'right' }}>
+          {hasLogin ? (
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
             </Button>
-            <Button color="inherit" component={RouterLink} to="/login">
-              Login
-            </Button>
-          </>
-        )}
+          ) : (
+            <>
+              <Button color="inherit" component={RouterLink} to="/signup">
+                Sign Up
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/login">
+                Login
+              </Button>
+            </>
+          )}
+        </div>
       </Toolbar>
     </AppBar>
   );

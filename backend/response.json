@@ -1,0 +1,52 @@
+{
+    "head": {
+        "vars": [
+            "band",
+            "member"
+        ]
+    },
+    "results": {
+        "bindings": [
+            {
+                "band": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/The_Beatles"
+                },
+                "member": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/John_Lennon"
+                }
+            },
+            {
+                "band": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/The_Beatles"
+                },
+                "member": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/Paul_McCartney"
+                }
+            },
+            {
+                "band": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/The_Beatles"
+                },
+                "member": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/Ringo_Starr"
+                }
+            },
+            {
+                "band": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/The_Beatles"
+                },
+                "member": {
+                    "type": "uri",
+                    "value": "http://stardog.com/tutorial/George_Harrison"
+                }
+            }
+        ]
+    }
+}
