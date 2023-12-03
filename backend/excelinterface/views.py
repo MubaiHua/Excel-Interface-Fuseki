@@ -28,7 +28,8 @@ def list_fuseki_datasets(request):
         datasets = response.json()
         db_names = []
         for dataset in datasets['datasets']:
-            db_names.append(dataset['ds.name'][1:])
+            if dataset['ds.name'][1:] != 'ds':
+                db_names.append(dataset['ds.name'][1:])
         return Response(db_names)
 
     except Exception as e:
@@ -38,8 +39,10 @@ def list_fuseki_datasets(request):
 
 @api_view(['GET'])
 def get_database_types(request):
-    db_name = 'music'
+    db_name = request.query_params.get('db_name', 'default')
     # fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+
+    # NEED to check whether the db_name
     fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
     sparql_str = """
     SELECT distinct?type
@@ -78,7 +81,7 @@ def update_database(request):
     db_name = "music"
     update_query_str = functions.get_update_query(before_triples, new_triples)
     # print(update_query_str)
-    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
 
     query_result = fuseki_update.run_sparql(update_query_str)
 
@@ -95,12 +98,15 @@ def update_database(request):
     else:
         return Response(response_data, status=200)
 
-      
+
 @api_view(['GET'])
 def get_type_predicates(request):
-    db_name = 'music'
-    selectedType = 'Album'
+    db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
+    selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
+
     predicate_name = 'p'
+
+    # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
     prefix_string = \
         """
         prefix : <http://stardog.com/tutorial/>
@@ -110,8 +116,8 @@ def get_type_predicates(request):
 
     sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
     # print(sparql_query)
-    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+    fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
     query_result = fuseki_query.run_sparql(sparql_query)
     response_json = query_result.convert()
     predicates = response_json['results']['bindings']
@@ -128,9 +134,11 @@ def get_type_predicates(request):
 
 @api_view(['GET'])
 def generate_query(request):
-    db_name = 'music'
-    selectedType = 'Album'
-    selectedPredicates = ['artist', 'description', 'track']
+    db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
+    selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
+    selectedPredicates = request.query_params.get('selectedPredicates', 'default')  # Provide a default value if not supplied['artist', 'description', 'track']
+
+    # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
     prefix_string = \
         """
         prefix : <http://stardog.com/tutorial/>
@@ -142,8 +150,8 @@ def generate_query(request):
         sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
     sparql_query += "}\n"
     print(sparql_query)
-    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+    fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
     query_result = fuseki_query.run_sparql(sparql_query)
     response_json = query_result.convert()
     json_data = json.dumps(response_json, indent=4)
@@ -174,7 +182,6 @@ def generate_query(request):
             writer.writerow(row)
     response = {'query': sparql_query, 'file_to_download': csv_file_path}
     return Response(response)
-
 
 class DatabaseModelViewSet(viewsets.ModelViewSet):
     queryset = DatabaseModel.objects.all()
@@ -243,3 +250,39 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'Fail to create new database'}, status=400)
         except Exception as e:
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
+
+@api_view(['POST'])
+def update_database(request):
+    csv_file = request.FILES['excel_sheet']
+    print(csv_file)
+    try:
+        csv_file = csv_file.read().decode('utf-8')
+        new_triples = functions.csv_to_triples(csv_file)
+    except:
+        return Response({'message': 'File format incorrect'}, status=400)
+    
+    #need to query psql server for the old triples of csv_file
+    #harcoded old_triple for now
+    before_triples = new_triples
+    new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
+    #print(f"the new triples are {new_triples}")
+    #get update query for fuseki
+    db_name = "music"
+    update_query_str = functions.get_update_query(before_triples, new_triples)
+    #print(update_query_str)
+    fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+
+    query_result = fuseki_update.run_sparql(update_query_str)
+    
+    #return update_result and turn it into Response format to send back to post request
+
+    response_json = query_result.convert()
+    response_data = {
+            'message' : response_json['message'],
+    }
+    #print(response_json)
+    if response_json['message'] != "Update succeeded":
+        print("huh")
+        return Response(response_data, status=400)
+    else:
+        return Response(response_data, status=200)

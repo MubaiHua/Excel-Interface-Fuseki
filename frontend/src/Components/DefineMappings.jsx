@@ -10,7 +10,9 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
-import { getFusekiDatasets } from '../Utils/FusekiAPI';
+import Checkbox from '@mui/material/Checkbox';
+
+import { getFusekiDatasets, getDatabaseTypes, getTypePredicates } from '../Utils/FusekiAPI';
 
 const steps = ['Select Database', 'Select Data Types', 'Select Attributes of the type'];
 
@@ -21,10 +23,16 @@ export default function DefineMappings({ userName, userID }) {
   const [datasets, setDatasets] = useState([]);
   const [selectedDataset, setSelectedDataset] = useState('');
 
+  const [dataTypes, setDataTypes] = React.useState([]);//all the types the dataset contains
+  const [selectedType, setSelectedType] = React.useState('');//type selected by the users
+
+  const [predicates, setPredicates] = React.useState([]);//all the predicates related to the data type selected
+  const [selectedPredicates, setSelectedPredicates] = React.useState([]);//predicates selected by the users
+
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
-        console.log('API Response:', response);
+        //console.log('API Response:', response);
         setDatasets(response);
       })
       .catch((err) => {
@@ -32,10 +40,22 @@ export default function DefineMappings({ userName, userID }) {
         alert('Failed to load datasets');
       });
     console.log(userID);
+    
   }, [userID]);
 
   const handleDatasetChange = (event) => {
     setSelectedDataset(event.target.value);
+    setSelectedType(''); // clean selected type if user goes back from the second step
+    setSelectedPredicates([]); // clean selected type if user goes back from the third step
+  };
+
+  const handleTypeSelectionChange = (event) => {
+    setSelectedType(event.target.value);
+    setSelectedPredicates([]);// clean selected type if user goes back from the third step
+  };
+
+  const handlePredicatesSelectionChange = (event) => {
+    setSelectedPredicates(event.target.value);
   };
 
   const isStepOptional = (step) => step === 114514; // place holder for feature
@@ -47,6 +67,19 @@ export default function DefineMappings({ userName, userID }) {
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
+    }
+
+
+    if (activeStep === 0) { // After selecting a dataset
+      getDatabaseTypes(selectedDataset)
+        .then(response => setDataTypes(response))
+        .catch(error => console.error('Error fetching data types:', error));
+    }
+
+    if (activeStep === 1) { // Moving from the second to the third step
+      getTypePredicates(selectedDataset, selectedType) 
+        .then(response => setPredicates(response))
+        .catch(error => console.error('Error fetching predicates:', error));
     }
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -113,11 +146,54 @@ export default function DefineMappings({ userName, userID }) {
               ))}
             </Select>
           </Grid>
-          <Grid item xs={6} style={{ padding: '10px' }}>
-            {/* Add content for the right half of the page */}
+        </Grid>
+      )}
+
+      {activeStep === 1 && (
+        <Grid container style={{ height: '70%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h4" align="center" gutterBottom>
+            Please select your targeted data type
+            </Typography>
+            <Select
+              value={selectedType}
+              onChange={handleTypeSelectionChange}
+              fullWidth
+            >
+              {dataTypes.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
           </Grid>
         </Grid>
       )}
+
+      {activeStep === 2 && (
+        <Grid container style={{ height: '70%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Please select attributes related to the selected data type
+            </Typography>
+            <Select
+              multiple
+              value={selectedPredicates}
+              onChange={handlePredicatesSelectionChange}
+              renderValue={(selected) => selected.join(', ')}
+              fullWidth
+            >
+              {predicates.map((predicate) => (
+                <MenuItem key={predicate} value={predicate}>
+                  <Checkbox checked={selectedPredicates.indexOf(predicate) > -1} />
+                  {predicate}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+        </Grid>
+      )}
+
       {activeStep === steps.length ? (
         <>
           <Typography sx={{ mt: 2, mb: 1 }}>
@@ -146,7 +222,11 @@ export default function DefineMappings({ userName, userID }) {
             </Button>
             )}
 
-            <Button onClick={handleNext}>
+            <Button 
+              onClick={handleNext}
+              disabled={activeStep === 0 && !selectedDataset ||
+                activeStep === 1 && !selectedType}
+            >
               {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
             </Button>
           </Box>
