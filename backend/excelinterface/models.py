@@ -5,6 +5,7 @@ from django.db.models import JSONField
 
 class DatabaseModel(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    graph_name = models.CharField(max_length=100, unique=True, default="default")
     turtle_file = models.TextField()
     prefix = ArrayField(models.CharField(max_length=10000), default=list)
 

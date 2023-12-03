@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import get_database_types, list_fuseki_datasets, get_type_predicates, generate_query, update_database
+from .views import get_database_types, list_fuseki_datasets, get_type_predicates, generate_query, update_database, DatabaseModelViewSet
 from rest_framework.routers import SimpleRouter
 
 router = SimpleRouter()

@@ -6,32 +6,26 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
+import { addDatabaseFile } from '../Utils/FusekiAPI';
 
 function FileUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [databaseName, setDatabaseName] = useState('');
-  const [graphName, setGraphName] = useState('');
+  // const [graphName, setGraphName] = useState('');
 
   const sendFileContent = async (fileContent) => {
-    // Perform the API call using Axios
-    try {
-      // Prepare the data to be sent to the server
-      const requestData = {
-        fileContent, // Sending the entire file content as a string
-        databaseName,
-        graphName,
-      };
+    const requestData = {
+      fileContent,
+      databaseName,
+    };
 
-      // Replace 'your-api-endpoint' with the actual endpoint
-      const response = await axios.post('your-api-endpoint', requestData);
-
-      // Handle the response as needed
-      console.log('API Response:', response.data);
-    } catch (error) {
-      // Handle errors
-      console.error('Error:', error);
-    }
+    addDatabaseFile(requestData)
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   };
 
   const onDrop = useCallback((acceptedFiles) => {
@@ -88,14 +82,14 @@ function FileUpload() {
         value={databaseName}
         onChange={(e) => setDatabaseName(e.target.value)}
       />
-      <TextField
+      {/* <TextField
         label="Graph Name"
         variant="outlined"
         margin="normal"
         fullWidth
         value={graphName}
         onChange={(e) => setGraphName(e.target.value)}
-      />
+      /> */}
 
       <Box
         {...getRootProps()}
@@ -124,7 +118,7 @@ function FileUpload() {
         variant="contained"
         color="primary"
         onClick={handleSubmit}
-        disabled={!selectedFile || !databaseName || !graphName}
+        disabled={!selectedFile || !databaseName}
         sx={{ marginTop: '16px' }}
       >
         Submit
