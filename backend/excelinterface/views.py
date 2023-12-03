@@ -205,45 +205,55 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         db_name = request['dbName']
         selectedType = request['selectedType']
         selectedPredicates = request['selectedPredicates']
-        prefix_string = \
-            """
-            prefix : <http://stardog.com/tutorial/>
-            prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-            """
+        db_object = DatabaseModel.objects.get(name=db_name)
+        prefix_list = db_object.prefix
+        prefix_string = "\n".join(prefix_list)
         sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
         for predicate in selectedPredicates:
             sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
         sparql_query += "}\n"
-        fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-        fuseki_query = FusekiQuery('http://localhost:3030', db_name)
-        query_result = fuseki_query.run_sparql(sparql_query)
-        response_json = query_result.convert()
-        json_data = json.dumps(response_json, indent=4)
-        # print(json_data)
+
+        data = {
+            'db_id': db_object.id,
+            'query': db_object
+        }
+
+        serializer = self.serializer_class(data = data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response({'message': 'Fail to create new mapping'}, status=400)
+        # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+        # fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+        # query_result = fuseki_query.run_sparql(sparql_query)
+        # response_json = query_result.convert()
+        # json_data = json.dumps(response_json, indent=4)
+        # # print(json_data)
+        # #
+        # file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/response.json'
+        # # df = pd.read_json(json_data)
+        # # df.to_csv("output.csv", index = False)
+        # # Writing JSON data to a file
+        # with open(file_path, 'w') as file:
+        #     file.write(json_data)
         #
-        file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/response.json'
-        # df = pd.read_json(json_data)
-        # df.to_csv("output.csv", index = False)
-        # Writing JSON data to a file
-        with open(file_path, 'w') as file:
-            file.write(json_data)
-
-        with open(file_path, 'r', encoding='utf-8') as json_file:
-            json_data = json.load(json_file)
-
-            # Extracting the data and headers
-        data = json_data['results']['bindings']
-        headers = ['album', 'artist', 'description', 'track']
-
-        # Write to the CSV file
-        csv_file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/result.csv'
-        with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=headers)
-            writer.writeheader()
-
-            for entry in data:
-                row = {key: entry[key]['value'] if key in entry else None for key in headers}
-                writer.writerow(row)
-        response = {'query': sparql_query, 'file_to_download': csv_file_path}
-        return Response(response)
+        # with open(file_path, 'r', encoding='utf-8') as json_file:
+        #     json_data = json.load(json_file)
+        #
+        #     # Extracting the data and headers
+        # data = json_data['results']['bindings']
+        # headers = ['album', 'artist', 'description', 'track']
+        #
+        # # Write to the CSV file
+        # csv_file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/result.csv'
+        # with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+        #     writer = csv.DictWriter(csv_file, fieldnames=headers)
+        #     writer.writeheader()
+        #
+        #     for entry in data:
+        #         row = {key: entry[key]['value'] if key in entry else None for key in headers}
+        #         writer.writerow(row)
+        # response = {'query': sparql_query, 'file_to_download': csv_file_path}
+        # return Response(response)
