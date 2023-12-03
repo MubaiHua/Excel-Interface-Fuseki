@@ -1,3 +1,4 @@
+# from rdflib.plugins.sparql import prepareQuery
 from rest_framework.response import Response
 from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
@@ -76,13 +77,57 @@ def create_databse(request):
         # Handle exceptions, e.g., connection error
         return Response({'message': f'Error: {str(e)}'}, status=400)
 
+@api_view(['GET'])
+def get_type_predicates(request):
+    db_name = 'music'
+    selectedType = 'Album'
+    predicate_name = 'p'
+    prefix_string = \
+    """
+    prefix : <http://stardog.com/tutorial/>
+    prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+    """
 
+    sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
+    # print(sparql_query)
+    fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    query_result = fuseki_query.run_sparql(sparql_query)
+    response_json = query_result.convert()
+    predicates = response_json['results']['bindings']
+    predicates_names = []
+    for obj in predicates:
+        value = obj[predicate_name]['value']
+        if value[-4:] == 'type':
+            continue
+        name = value.split("/")[-1]
+        predicates_names.append(name)
+    # print(response_json)
+    return Response(predicates_names)
 
-
-
-
-
-
+    # preparedQuery not working
+    # db_name = 'music'
+    # selectedType = 'Album'
+    # prefixMapping = dict()
+    # prefixMapping['TYPE'] = selectedType
+    # prefix_array = ["prefix : <https://stardog.com/tutorial/>",
+    #                 "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
+    #                 "prefix xsd: <http://www.w3.org/2001/XMLSchema#>"]
+    # for prefix in prefix_array:
+    #     elements = prefix.split(" ")
+    #     prefixMapping[elements[1][0:-1]] = elements[2][1:-1]
+    #
+    # q = prepareQuery(
+    #     "SELECT distinct ?p WHERE{ ?s rdf:type :TYPE . ?s ?p ?o .}",
+    #     initNs=prefixMapping
+    # )
+    # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+    # fuseki_query = FusekiQuery('http://localhost:3030', db_name)
+    # query_result = fuseki_query.run_sparql(str(q))
+    # response_json = query_result.convert()
+    # print(response_json)
+    # return Response({'message': 'Hello, world!'})
 
 # @api_view(['GET'])
 # def get(request):
