@@ -135,21 +135,53 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
 
             mapping_id = request.data['mapping_id']
 
+            
             query_entry = MappingModel.objects.get(pk=mapping_id)
             sparql_query = query_entry.query
+            #print(sparql_query)
+            if "filter_equals" in request.data:
+                #print("in filters")
+                filter = request.data['filter_equals'] #json of var and values to compare e.g. {"name": "\"Please Please Me\"", "count": "42"} (quotations included for string literals)
+                filter = json.loads(filter)
+                filter_queries = []
+                for key in filter:
+                    filter_query = f'FILTER (?{key} = {filter[key]}) .\n'
+                    filter_queries.append(filter_query)
+                sparql_query = sparql_query[:-1]
+                for filter_query in filter_queries:
+                    sparql_query += filter_query
+                sparql_query+='}'
+                #print(sparql_query)
+            if "order_by_var" in request.data:
+                order_by_var = request.data['order_by_var'] #variable name to order by e.g. name
+                order_by = request.data['order_by'] #asc or desc
+                order_query = f'ORDER BY {order_by}(?{order_by_var})\n'
+                sparql_query += order_query
+            if "limit" in request.data:
+                limit = request.data['limit'] #numeric value
+                limit_query = f'LIMIT {limit}\n'
+                sparql_query += limit_query
+            
+            #print(sparql_query)
+
 
             # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
             fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
-            query_result = fuseki_query.run_sparql(sparql_query)
+            try:
+                query_result = fuseki_query.run_sparql(sparql_query)
+            except:
+                return Response({'message': 'bad query to fuseki, check if your filter values are valid data types!'}, status=400)
             response_json = query_result.convert()
+            #print("we are past the query")
             data = response_json['results']['bindings']
             headers = response_json['head']['vars']
             row_list = []
             for entry in data:
                 row = {key: json_to_string_value(entry[key]) if key in entry else None for key in headers}
                 row_list.append(row)
-
-            csv_data = json_to_csv(row_list)
+            #print(type(headers))
+            csv_data = json_to_csv(headers, row_list)
+            #print(csv_data)
             data = {
                 'mapping_id': mapping_id,
                 'csv': csv_data,
@@ -357,6 +389,8 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         mapping_name = request.data['mappingName']
         selectedType = request.data['selectedType']
         selectedPredicates = request.data['predicateList']
+        print("selectedPredicates")
+        print(type(selectedPredicates))
         db_object = DatabaseModel.objects.get(name=db_name)
         prefix_list = db_object.prefix
         prefix_string = "\n".join(prefix_list)
