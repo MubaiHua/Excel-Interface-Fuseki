@@ -91,7 +91,7 @@ function DataImport() {
       exportValue,
     };
     postImportExcel(payload)
-      .then((data) => console.log(data))
+      .then(() => alert('Import successful'))
       .catch(() => alert('Fail to import'));
   };
 
