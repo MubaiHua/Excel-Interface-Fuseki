@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DatabaseModel, MappingModel, InportDataModel
+from .models import DatabaseModel, MappingModel, ImportDataModel, ExportDataModel
 
 
 class DatabaseModelSerializer(serializers.ModelSerializer):
@@ -12,7 +12,12 @@ class MappingModelSerializer(serializers.ModelSerializer):
         model = MappingModel
         fields = '__all__'
 
-class InportDataModelSerializer(serializers.ModelSerializer):
+class ImportDataModelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = InportDataModel
+        model = ImportDataModel
+        fields = '__all__'
+
+class ExportDataModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExportDataModel
         fields = '__all__'
