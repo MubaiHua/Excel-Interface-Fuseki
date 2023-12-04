@@ -16,13 +16,14 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
-import StorageIcon from '@mui/icons-material/Storage';
+import ViewStreamIcon from '@mui/icons-material/ViewStream';
+import TextField from '@mui/material/TextField';
 
 import {
   getFusekiDatasets, getDatabaseTypes, getTypePredicates, generateQuery,
 } from '../Utils/FusekiAPI';
 
-const steps = ['Select Database', 'Select Data Types', 'Select Attributes of the type'];
+const steps = ['Enter a name', 'Select Database', 'Select Data Types', 'Select Attributes of the type'];
 
 function FinishedItem({ finishedList }) {
   return (
@@ -31,7 +32,7 @@ function FinishedItem({ finishedList }) {
         <ListItem>
           <ListItemAvatar>
             <Avatar>
-              <StorageIcon />
+              <ViewStreamIcon />
             </Avatar>
           </ListItemAvatar>
           <ListItemText primary={item.name} secondary={item.name} />
@@ -66,6 +67,8 @@ export default function DefineMappings({ userName, userID }) {
   const [selectedPredicates, setSelectedPredicates] = useState([]);
   const [generatedQuery, setGeneratedQuery] = useState([]);
 
+  const [mappingName, setMappingName] = useState('');
+
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
@@ -76,7 +79,6 @@ export default function DefineMappings({ userName, userID }) {
         console.error('Error fetching datasets:', err);
         alert('Failed to load datasets');
       });
-    console.log(userID);
   }, [userID]);
 
   const handleDatasetChange = (event) => {
@@ -94,8 +96,13 @@ export default function DefineMappings({ userName, userID }) {
     setSelectedPredicates(event.target.value);
   };
 
+  const handleMappingNameChange = (event) => {
+    setMappingName(event.target.value);
+    setSelectedDatabase('');
+  };
+
   const handleNext = () => {
-    if (activeStep === 0) { // After selecting a dataset
+    if (activeStep === 1) { // After selecting a dataset
       getDatabaseTypes(selectedDatabase)
         .then((response) => {
           setDataTypes(response);
@@ -105,7 +112,7 @@ export default function DefineMappings({ userName, userID }) {
           console.error('Error fetching data types:', error);
           alert("Can't fetching data types");
         });
-    } else if (activeStep === 1) { // Moving from the second to the third step
+    } else if (activeStep === 2) { // Moving from the second to the third step
       getTypePredicates(selectedDatabase, selectedType)
         .then((response) => {
           setPredicates(response);
@@ -115,7 +122,7 @@ export default function DefineMappings({ userName, userID }) {
           console.error('Error fetching predicates:', error);
           alert("Can't fetching predicates");
         });
-    } else if (activeStep === 2) { // Moving from the second to the third step
+    } else if (activeStep === 3) { // Moving from the second to the third step
       const data = {
         dbName: selectedDatabase,
         selectedType,
@@ -132,11 +139,18 @@ export default function DefineMappings({ userName, userID }) {
           console.error('Error generating query:', error);
           alert("Can't generate query");
         });
+    } else {
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
     }
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep((prevActiveStep) => {
+      if (prevActiveStep - 1 === 0) {
+        setMappingName('');
+      }
+      return (prevActiveStep - 1);
+    });
   };
 
   const handleReset = () => {
@@ -160,6 +174,17 @@ export default function DefineMappings({ userName, userID }) {
         <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
             <Typography variant="h6" align="center" gutterBottom>
+              Please enter a name for your mapping
+            </Typography>
+            <TextField id="outlined-basic" label="Name" variant="outlined" onChange={handleMappingNameChange} />
+          </Grid>
+        </Grid>
+      )}
+
+      {activeStep === 1 && (
+        <Grid container style={{ height: '100%' }}>
+          <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
+            <Typography variant="h6" align="center" gutterBottom>
               Please select the database you would like to access:
             </Typography>
             <Select value={selectedDatabase} onChange={handleDatasetChange} fullWidth>
@@ -170,10 +195,13 @@ export default function DefineMappings({ userName, userID }) {
               ))}
             </Select>
           </Grid>
+          <Grid item xs={6} style={{ padding: '10px' }}>
+            <FinishedItem finishedList={[{ type: 'Name', name: mappingName }]} />
+          </Grid>
         </Grid>
       )}
 
-      {activeStep === 1 && (
+      {activeStep === 2 && (
         <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
             <Typography variant="h6" align="center" gutterBottom>
@@ -197,7 +225,7 @@ export default function DefineMappings({ userName, userID }) {
         </Grid>
       )}
 
-      {activeStep === 2 && (
+      {activeStep === 3 && (
         <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
             <Typography variant="h6" align="center" gutterBottom>
@@ -261,8 +289,9 @@ export default function DefineMappings({ userName, userID }) {
           <Button
             onClick={handleNext}
             disabled={
-                (activeStep === 0 && !selectedDatabase)
-                 || (activeStep === 1 && !selectedType)
+              (activeStep === 0 && !mappingName)
+                || (activeStep === 1 && !selectedDatabase)
+                 || (activeStep === 2 && !selectedType)
               }
           >
             {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}

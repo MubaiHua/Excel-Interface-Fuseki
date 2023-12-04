@@ -23,6 +23,7 @@ import PostAddIcon from '@mui/icons-material/PostAdd';
 import DefineMappings from './DefineMappings';
 import DatabaseOverview from './DatabaseOverview';
 import AddDatabase from './AddDatabase';
+import DataImport from './DataImport';
 
 const drawerWidth = 240;
 
@@ -146,6 +147,7 @@ export default function Dashboard({ userID, userName, isUserAdmin }) {
             {tab === 'Overview' && (<DatabaseOverview userID={userID} userName={userName} />)}
             {tab === 'Create Mapping' && (<DefineMappings userID={userID} userName={userName} />)}
             {tab === 'Add Database' && (<AddDatabase userID={userID} userName={userName} />)}
+            {tab === 'Import Data' && (<DataImport userID={userID} userName={userName} />)}
           </Container>
         </Box>
       </Box>
