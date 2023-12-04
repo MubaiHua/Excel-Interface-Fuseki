@@ -90,7 +90,7 @@ def get_type_predicates(request):
 @api_view(['POST'])
 def update_database(request):
     csv_file = request.FILES['excel_sheet']
-    print(csv_file)
+    # print(csv_file)
     try:
         csv_file = csv_file.read().decode('utf-8')
         new_triples = csv_to_triples(csv_file)
@@ -105,7 +105,7 @@ def update_database(request):
     # get update query for fuseki
     db_name = "test4"
     update_query_str = get_update_query(before_triples, new_triples)
-    print(update_query_str)
+    # print(update_query_str)
     fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
 
     query_result = fuseki_update.run_sparql(update_query_str)
@@ -118,7 +118,7 @@ def update_database(request):
     }
     # print(response_json)
     if response_json['message'] != "Update succeeded":
-        print("huh")
+        # print("huh")
         return Response(response_data, status=400)
     else:
         return Response(response_data, status=200)
@@ -130,7 +130,7 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            print("we are in")
+            # print("we are in")
             db_name = request.data['dbName']
 
             mapping_id = request.data['mapping_id']
@@ -189,15 +189,15 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
         csv_file = request.data['csvData']
         export_id = request.data['exportValue']
         export_entry = ExportDataModel.objects.get(id=export_id)
-        print(export_entry)
+        # print(export_entry)
         old_csv_data = export_entry.csv
-        print(old_csv_data)
+        # print(old_csv_data)
         # old_csv_data = json.dumps(old_csv_data)
         export_mapping = export_entry.mapping_id
         # print(export_mapping)
         # mapping_entry = MappingModel.objects.get(pk = export_mapping)
         predicate_var_to_val = json.loads(export_mapping.predicate_var_to_val)
-        print(predicate_var_to_val)
+        # print(predicate_var_to_val)
 
         before_triples = csv_to_triples(old_csv_data)
 
@@ -215,11 +215,11 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'csv column headers have been changed!'}, status=400)
             else:
                 before_triples[i][1] = value_name
-        print("before triples done")
+        # print("before triples done")
         # print(new_triples)
         for i in range(len(new_triples)):
             var_name = new_triples[i][1]
-            print(var_name)
+            # print(var_name)
             value_name = predicate_var_to_val.get(var_name, -1)
             if value_name == -1:
                 return Response({'message': 'csv column headers have been changed!'}, status=400)
@@ -230,9 +230,9 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
 
         # print(f"the new triples are {new_triples}")
         # get update query for fuseki
-        print("what")
+        # print("what")
         update_query_str = get_update_query(before_triples, new_triples)
-        print(update_query_str)
+        # print(update_query_str)
         fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
 
         fuseki_update.sparql_conn.setHTTPAuth(BASIC)
@@ -257,7 +257,7 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
         }
         # print(response_json)
         if response_json['message'] != "Update succeeded":
-            print("huh")
+            # print("huh")
             return Response(response_data, status=400)
         else:
             return Response(response_data, status=200)
@@ -363,11 +363,11 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
         predicate_var_to_value = {}
         for obj in selectedPredicates:
-            print(obj)
+            # print(obj)
             predicate_value = json_to_string_value(obj[predicate_name])
             predicate_var_name = obj[predicate_name]['value'].split('/')[-1]
-            print(predicate_value)
-            print(predicate_var_name)
+            # print(predicate_value)
+            # print(predicate_var_name)
             predicate_var_to_value[predicate_var_name] = predicate_value
             sparql_query += f"      ?{selectedType.lower()} {predicate_value} ?{predicate_var_name} .\n"
         sparql_query += "}\n"
