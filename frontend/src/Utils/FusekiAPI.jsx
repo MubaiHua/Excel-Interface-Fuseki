@@ -14,4 +14,10 @@ export const getAllDatabase = () => APIManager.get('/api/database/get_all_databa
 
 export const getAllMappings = (data) => APIManager.post('/api/mapping/get_all_mappings/', data);
 
+export const getAllExports = (data) => APIManager.post('/api/export/get_all_exports/', data);
+
 export const checkDuplicateMappingName = (data) => APIManager.post('/api/mapping/check_name_duplicate/', data);
+
+export const getExportExcel = (data) => APIManager.postGetFile('/api/export/', data);
+
+export const postImportExcel = (data) => APIManager.post('/api/import/', data);

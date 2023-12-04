@@ -30,6 +30,16 @@ export default class APIManager {
       });
   }
 
+  static postGetFile(endpoint, data) {
+    return axios.post(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+      responseType: 'blob',
+    });
+  }
+
   static put(endpoint, data) {
     return axios.put(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
       headers: {

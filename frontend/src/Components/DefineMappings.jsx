@@ -136,10 +136,14 @@ export default function DefineMappings({ userName, userID }) {
           alert("Can't fetching predicates");
         });
     } else if (activeStep === 3) { // Moving from the second to the third step
+      const predicateList = [];
+      selectedPredicates.forEach((idx) => {
+        predicateList.push(predicates[idx]);
+      });
       const data = {
         dbName: selectedDatabase,
         selectedType,
-        selectedPredicates,
+        predicateList,
         mappingName,
       };
       generateQuery(data)
@@ -253,13 +257,13 @@ export default function DefineMappings({ userName, userID }) {
               multiple
               value={selectedPredicates}
               onChange={handlePredicatesSelectionChange}
-              renderValue={(selected) => selected.join(', ')}
+              renderValue={(selected) => selected.map((idx) => `${predicates[idx].predicate.value}, `)}
               fullWidth
             >
-              {predicates.map((predicate) => (
-                <MenuItem key={predicate} value={predicate}>
-                  <Checkbox checked={selectedPredicates.indexOf(predicate) > -1} />
-                  {predicate}
+              {predicates.map((predicate, index) => (
+                <MenuItem key={predicate.predicate.value} value={index}>
+                  <Checkbox checked={selectedPredicates.includes(index)} />
+                  {predicate.predicate.value}
                 </MenuItem>
               ))}
             </Select>

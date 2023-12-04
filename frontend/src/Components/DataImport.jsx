@@ -4,15 +4,19 @@ import { useDropzone } from 'react-dropzone';
 import {
   Box, Typography, Button, Container, Grid, MenuItem, Paper, Select,
 } from '@mui/material';
-import { getAllDatabase, getAllMappings } from '../Utils/FusekiAPI';
+import {
+  getAllDatabase, getAllMappings, getAllExports, postImportExcel,
+} from '../Utils/FusekiAPI';
 
 function DataImport() {
   const [file, setFile] = useState(null);
   const [database, setDatabase] = useState('');
   const [mapping, setMapping] = useState('');
+  const [exportValue, setExportValue] = useState('');
   const [csvData, setCSVData] = useState(null);
   const [allDatabase, setAllDatabase] = useState([]);
   const [allMappings, setAllMappings] = useState([]);
+  const [allExportValue, setAllExportValue] = useState([]);
 
   useEffect(() => {
     getAllDatabase()
@@ -34,18 +38,27 @@ function DataImport() {
     }
   }, [database]);
 
+  useEffect(() => {
+    if (mapping !== '') {
+      getAllExports({ mappingID: mapping })
+        .then((data) => {
+          setAllExportValue(data);
+        }).catch(() => {
+          alert('Fail to get export data');
+        });
+    }
+  }, [mapping]);
+
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const fileContent = event.target.result;
-        // Assuming each line in the CSV file is separated by a newline character
-        const parsedData = fileContent.split('\n');
-
         // Update the state with the parsed data
-        setCSVData(parsedData);
+        setCSVData(fileContent);
       };
       reader.readAsText(acceptedFiles[0]);
+      setFile(acceptedFiles[0]);
     }
   }, []);
   const handleDatabaseChange = (event) => {
@@ -56,8 +69,30 @@ function DataImport() {
     setMapping(event.target.value);
   };
 
+  const handleExportChange = (event) => {
+    setExportValue(event.target.value);
+  };
+
   const handleUpload = async () => {
-    console.log(csvData);
+    let dbName = '';
+    for (let i = 0; i < allDatabase.length; i++) {
+      if (allDatabase[i].id === database) {
+        dbName = allDatabase[i].name;
+        break;
+      }
+    }
+    if (dbName === '') {
+      alert('Fail to import');
+      return;
+    }
+    const payload = {
+      dbName,
+      csvData,
+      exportValue,
+    };
+    postImportExcel(payload)
+      .then((data) => console.log(data))
+      .catch(() => alert('Fail to import'));
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -75,7 +110,7 @@ function DataImport() {
               CSV File Uploader
             </Typography>
           )
-          : database.length === 0 ? (
+          : allDatabase.length === 0 ? (
             <Typography variant="h5" align="center" gutterBottom>
               No database available
             </Typography>
@@ -116,6 +151,20 @@ function DataImport() {
                 {allMappings.map((mp) => (<MenuItem value={mp.id}>{mp.name}</MenuItem>))}
               </Select>
             </Grid>
+            <Grid item xs={12}>
+              <Select
+                value={exportValue}
+                onChange={handleExportChange}
+                fullWidth
+                displayEmpty
+                inputProps={{ 'aria-label': 'Without label' }}
+              >
+                <MenuItem value="" disabled>
+                  Select Export ID
+                </MenuItem>
+                {allExportValue.map((mp) => (<MenuItem value={mp.id}>{mp.id}</MenuItem>))}
+              </Select>
+            </Grid>
           </Grid>
           <Box
             display="flex"
@@ -147,7 +196,7 @@ function DataImport() {
               </Typography>
             )}
           </Box>
-          <Button variant="contained" color="primary" onClick={handleUpload} fullWidth>
+          <Button variant="contained" color="primary" onClick={handleUpload} fullWidth disabled={mapping === '' || database === '' || exportValue === ''}>
             Submit
           </Button>
         </>
