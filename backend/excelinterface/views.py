@@ -1,16 +1,18 @@
 # from rdflib.plugins.sparql import prepareQuery
+from django.http import HttpResponse
 from rest_framework.response import Response
-from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 import requests, json, csv
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
 from rest_framework import status, viewsets
-from .models import DatabaseModel, MappingModel, InportDataModel
-from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
-from . import functions
+from .models import DatabaseModel, MappingModel, ImportDataModel, ExportDataModel
+from .serializer import DatabaseModelSerializer, MappingModelSerializer, ImportDataModelSerializer, \
+    ExportDataModelSerializer
+from .functions import csv_to_triples, get_update_query, json_to_string_value, json_to_csv
 import io
+from SPARQLWrapper import BASIC
 
 FUSEKI_END_POINT = settings.FUSEKI_END_POINT
 username = 'admin'
@@ -61,20 +63,18 @@ def get_database_types(request):
 
     return Response(type_names)
 
+
 @api_view(['GET'])
 def get_type_predicates(request):
     db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
     selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
 
-    predicate_name = 'p'
+    predicate_name = 'predicate'
 
     # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
-    prefix_string = \
-        """
-        prefix : <http://stardog.com/tutorial/>
-        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-        """
+    db_object = DatabaseModel.objects.get(name=db_name)
+    prefix_list = db_object.prefix
+    prefix_string = "\n".join(prefix_list)
 
     sparql_query = prefix_string + f"SELECT distinct ?{predicate_name} WHERE{{ ?s rdf:type :{selectedType} . ?s ?{predicate_name} ?o .}}"
     # print(sparql_query)
@@ -83,51 +83,185 @@ def get_type_predicates(request):
     query_result = fuseki_query.run_sparql(sparql_query)
     response_json = query_result.convert()
     predicates = response_json['results']['bindings']
-    predicates_names = []
-    for obj in predicates:
-        value = obj[predicate_name]['value']
-        if value[-4:] == 'type':
-            continue
-        name = value.split("/")[-1]
-        predicates_names.append(name)
-    # print(response_json)
-    return Response(predicates_names)
+    filtered_predicates = [obj for obj in predicates if not obj[predicate_name]['value'].endswith('type')]
+    return Response(filtered_predicates)
+
 
 @api_view(['POST'])
 def update_database(request):
     csv_file = request.FILES['excel_sheet']
-    print(csv_file)
+    # print(csv_file)
     try:
         csv_file = csv_file.read().decode('utf-8')
-        new_triples = functions.csv_to_triples(csv_file)
+        new_triples = csv_to_triples(csv_file)
     except:
         return Response({'message': 'File format incorrect'}, status=400)
 
-    #need to query psql server for the old triples of csv_file
-    #harcoded old_triple for now
+    # need to query psql server for the old triples of csv_file
+    # harcoded old_triple for now
     before_triples = new_triples
     new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
-    #print(f"the new triples are {new_triples}")
-    #get update query for fuseki
-    db_name = "music"
-    update_query_str = functions.get_update_query(before_triples, new_triples)
-    #print(update_query_str)
+    # print(f"the new triples are {new_triples}")
+    # get update query for fuseki
+    db_name = "test4"
+    update_query_str = get_update_query(before_triples, new_triples)
+    # print(update_query_str)
     fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
 
     query_result = fuseki_update.run_sparql(update_query_str)
 
-    #return update_result and turn it into Response format to send back to post request
+    # return update_result and turn it into Response format to send back to post request
 
     response_json = query_result.convert()
     response_data = {
-            'message' : response_json['message'],
+        'message': response_json['message'],
     }
-    #print(response_json)
+    # print(response_json)
     if response_json['message'] != "Update succeeded":
-        print("huh")
+        # print("huh")
         return Response(response_data, status=400)
     else:
         return Response(response_data, status=200)
+
+
+class ExportDataModelViewSet(viewsets.ModelViewSet):
+    queryset = ExportDataModel.objects.all()
+    serializer_class = ExportDataModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            # print("we are in")
+            db_name = request.data['dbName']
+
+            mapping_id = request.data['mapping_id']
+
+            query_entry = MappingModel.objects.get(pk=mapping_id)
+            sparql_query = query_entry.query
+
+            # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+            fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
+            query_result = fuseki_query.run_sparql(sparql_query)
+            response_json = query_result.convert()
+            data = response_json['results']['bindings']
+            headers = response_json['head']['vars']
+            row_list = []
+            for entry in data:
+                row = {key: json_to_string_value(entry[key]) if key in entry else None for key in headers}
+                row_list.append(row)
+
+            csv_data = json_to_csv(row_list)
+            data = {
+                'mapping_id': mapping_id,
+                'csv': csv_data,
+                'query': sparql_query
+            }
+            serializer = self.serializer_class(data=data, many=False)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response({'message': 'unable to update export database'}, status=400)
+            export_id = serializer.data['id']
+            response = HttpResponse(content_type=f"{export_id}.csv")
+            response['Content-Disposition'] = f'attachment; filename="{export_id}.csv"'
+
+            # Write the CSV data to the response
+            response.write(csv_data)
+
+            return response
+
+        except Exception as e:
+            return Response({'message': 'unable to update export database'}, status=400)
+    @action(detail=False, methods=['post'])
+    def get_all_exports(self, request, *args, **kwargs):
+        mapping_id = request.data['mappingID']
+        queryset = ExportDataModel.objects.filter(mapping_id=mapping_id)
+        included_fields = ['id']
+        serializer = self.get_serializer(queryset, many=True, fields=included_fields)
+        return Response(serializer.data)
+
+class ImportDataModelViewSet(viewsets.ModelViewSet):
+    queryset = ImportDataModel.objects.all()
+    serializer_class = ImportDataModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        # print("wehat")
+        db_name = request.data['dbName']
+        csv_file = request.data['csvData']
+        export_id = request.data['exportValue']
+        export_entry = ExportDataModel.objects.get(id=export_id)
+        # print(export_entry)
+        old_csv_data = export_entry.csv
+        # print(old_csv_data)
+        # old_csv_data = json.dumps(old_csv_data)
+        export_mapping = export_entry.mapping_id
+        # print(export_mapping)
+        # mapping_entry = MappingModel.objects.get(pk = export_mapping)
+        predicate_var_to_val = json.loads(export_mapping.predicate_var_to_val)
+        # print(predicate_var_to_val)
+
+        before_triples = csv_to_triples(old_csv_data)
+
+        # print(csv_file)
+        try:
+            new_triples = csv_to_triples(csv_file)
+        except:
+            return Response({'message': 'File format incorrect'}, status=400)
+
+        for i in range(len(before_triples)):
+            var_name = before_triples[i][1]
+            print(var_name)
+            value_name = predicate_var_to_val.get(var_name, -1)
+            if value_name == -1:
+                return Response({'message': 'csv column headers have been changed!'}, status=400)
+            else:
+                before_triples[i][1] = value_name
+        # print("before triples done")
+        # print(new_triples)
+        for i in range(len(new_triples)):
+            var_name = new_triples[i][1]
+            # print(var_name)
+            value_name = predicate_var_to_val.get(var_name, -1)
+            if value_name == -1:
+                return Response({'message': 'csv column headers have been changed!'}, status=400)
+            else:
+                new_triples[i][1] = value_name
+        # need to query psql server for the old triples of csv_file
+        # harcoded old_triple for now
+
+        # print(f"the new triples are {new_triples}")
+        # get update query for fuseki
+        # print("what")
+        update_query_str = get_update_query(before_triples, new_triples)
+        # print(update_query_str)
+        fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+
+        fuseki_update.sparql_conn.setHTTPAuth(BASIC)
+        fuseki_update.sparql_conn.setCredentials(username, password)
+        query_result = fuseki_update.run_sparql(update_query_str)
+
+        # return update_result and turn it into Response format to send back to post request
+        data = {
+            'export_id': export_id,
+            'csv': csv_file,
+            'query': update_query_str
+        }
+        serializer = self.serializer_class(data=data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return Response({'message': 'unable to update export database'}, status=400)
+
+        response_json = query_result.convert()
+        response_data = {
+            'message': response_json['message'],
+        }
+        # print(response_json)
+        if response_json['message'] != "Update succeeded":
+            # print("huh")
+            return Response(response_data, status=400)
+        else:
+            return Response(response_data, status=200)
+
 
 class DatabaseModelViewSet(viewsets.ModelViewSet):
     queryset = DatabaseModel.objects.all()
@@ -197,63 +331,71 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
+    @action(detail=False, methods=['post'])
+    def delete_all_fuseki_database(self, request, *args, **kwargs):
+        try:
+            DatabaseModel.objects.all().delete()
+            return Response({'message': 'success'}, status=204)
+        except Exception as e:
+            return Response({'message': 'fail'}, status=400)
+
+    @action(detail=False, methods=['get'])
+    def get_all_databases(self, request, *args, **kwargs):
+        queryset = DatabaseModel.objects.all()
+        included_fields = ['name', 'id']
+        serializer = self.get_serializer(queryset, many=True, fields=included_fields)
+        return Response(serializer.data)
+
+
 class MappingModelViewSet(viewsets.ModelViewSet):
     queryset = MappingModel.objects.all()
     serializer_class = MappingModelSerializer
 
     def create(self, request, *args, **kwargs):
+        predicate_name = "predicate"
         db_name = request.data['dbName']
+        mapping_name = request.data['mappingName']
         selectedType = request.data['selectedType']
-        selectedPredicates = request.data['selectedPredicates']
+        selectedPredicates = request.data['predicateList']
         db_object = DatabaseModel.objects.get(name=db_name)
         prefix_list = db_object.prefix
         prefix_string = "\n".join(prefix_list)
         sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
-        for predicate in selectedPredicates:
-            sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
+        predicate_var_to_value = {}
+        for obj in selectedPredicates:
+            # print(obj)
+            predicate_value = json_to_string_value(obj[predicate_name])
+            predicate_var_name = obj[predicate_name]['value'].split('/')[-1]
+            # print(predicate_value)
+            # print(predicate_var_name)
+            predicate_var_to_value[predicate_var_name] = predicate_value
+            sparql_query += f"      ?{selectedType.lower()} {predicate_value} ?{predicate_var_name} .\n"
         sparql_query += "}\n"
-
+        predicate_var_to_val_json = json.dumps(predicate_var_to_value)
         data = {
+            'name': mapping_name,
             'db_id': db_object.id,
-            'query': sparql_query
+            'query': sparql_query,
+            'predicate_var_to_val': predicate_var_to_val_json
         }
 
-        serializer = self.serializer_class(data = data, many=False)
+        serializer = self.serializer_class(data=data, many=False)
         if serializer.is_valid():
             serializer.save()
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         else:
             return Response({'message': 'Fail to create new mapping'}, status=400)
-        # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
-        # fuseki_query = FusekiQuery('http://localhost:3030', db_name)
-        # query_result = fuseki_query.run_sparql(sparql_query)
-        # response_json = query_result.convert()
-        # json_data = json.dumps(response_json, indent=4)
-        # # print(json_data)
-        # #
-        # file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/response.json'
-        # # df = pd.read_json(json_data)
-        # # df.to_csv("output.csv", index = False)
-        # # Writing JSON data to a file
-        # with open(file_path, 'w') as file:
-        #     file.write(json_data)
-        #
-        # with open(file_path, 'r', encoding='utf-8') as json_file:
-        #     json_data = json.load(json_file)
-        #
-        #     # Extracting the data and headers
-        # data = json_data['results']['bindings']
-        # headers = ['album', 'artist', 'description', 'track']
-        #
-        # # Write to the CSV file
-        # csv_file_path = '/Users/xinlin/Desktop/CS130/CS130-Group-Project/backend/excelinterface/result.csv'
-        # with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
-        #     writer = csv.DictWriter(csv_file, fieldnames=headers)
-        #     writer.writeheader()
-        #
-        #     for entry in data:
-        #         row = {key: entry[key]['value'] if key in entry else None for key in headers}
-        #         writer.writerow(row)
-        # response = {'query': sparql_query, 'file_to_download': csv_file_path}
-        # return Response(response)
+
+    @action(detail=False, methods=['post'])
+    def get_all_mappings(self, request, *args, **kwargs):
+        database_id = request.data['databaseID']
+        queryset = MappingModel.objects.filter(db_id=database_id)
+        included_fields = ['name', 'id']
+        serializer = self.get_serializer(queryset, many=True, fields=included_fields)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def check_name_duplicate(self, request, *args, **kwargs):
+        name = request.data['name']
+        return Response({'duplicate': MappingModel.objects.filter(name=name).exists()})

@@ -5,8 +5,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -44,7 +42,6 @@ function Copyright(props) {
 function Login() {
   const [loginEmail, setLoginEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const currentURL = window.location.href;
@@ -88,14 +85,6 @@ function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    setError(''); // Reset error message
-
-    // Check for non-empty email and password
-    if (!loginEmail.trim() || !password.trim()) {
-      setError('Email and password cannot be empty.');
-    }
-
     const payload = {
       email: loginEmail,
       password,
@@ -178,6 +167,7 @@ function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={!loginEmail.trim() || !password.trim()}
             >
               Sign In
             </Button>
