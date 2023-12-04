@@ -11,6 +11,7 @@ class DatabaseModel(models.Model):
 
 class MappingModel(models.Model):
     db_id = models.ForeignKey(DatabaseModel, help_text='database id', on_delete=models.CASCADE, related_name='db_id')
+    name = models.CharField(max_length=100, unique=True)
     query = models.TextField()
 
 class ImportDataModel(models.Model):

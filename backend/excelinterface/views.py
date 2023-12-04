@@ -308,12 +308,29 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
+    @action(detail=False, methods=['post'])
+    def delete_all_fuseki_database(self, request, *args, **kwargs):
+        try:
+            DatabaseModel.objects.all().delete()
+            return Response({'message': 'success'}, status=204)
+        except Exception as e:
+            return Response({'message': 'fail'}, status=400)
+
+    @action(detail=False, methods=['get'])
+    def get_all_databases(self, request, *args, **kwargs):
+        queryset = DatabaseModel.objects.all()
+        included_fields = ['name', 'id']
+        serializer = self.get_serializer(queryset, many=True, fields=included_fields)
+        return Response(serializer.data)
+
+
 class MappingModelViewSet(viewsets.ModelViewSet):
     queryset = MappingModel.objects.all()
     serializer_class = MappingModelSerializer
 
     def create(self, request, *args, **kwargs):
         db_name = request.data['dbName']
+        mapping_name = request.data['mappingName']
         selectedType = request.data['selectedType']
         selectedPredicates = request.data['selectedPredicates']
         db_object = DatabaseModel.objects.get(name=db_name)
@@ -325,6 +342,7 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         sparql_query += "}\n"
 
         data = {
+            'name':mapping_name,
             'db_id': db_object.id,
             'query': sparql_query
         }
@@ -368,3 +386,11 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         #         writer.writerow(row)
         # response = {'query': sparql_query, 'file_to_download': csv_file_path}
         # return Response(response)
+
+    @action(detail=False, methods=['post'])
+    def get_all_mappings(self, request, *args, **kwargs):
+        database_id = request.data['databaseID']
+        queryset = MappingModel.objects.filter(db_id=database_id)
+        included_fields = ['name', 'id']
+        serializer = self.get_serializer(queryset, many=True, fields=included_fields)
+        return Response(serializer.data)
