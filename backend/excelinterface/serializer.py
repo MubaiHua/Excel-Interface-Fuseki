@@ -32,7 +32,7 @@ class ImportDataModelSerializer(serializers.ModelSerializer):
         model = ImportDataModel
         fields = '__all__'
 
-class ExportDataModelSerializer(serializers.ModelSerializer):
+class ExportDataModelSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = ExportDataModel
         fields = '__all__'
