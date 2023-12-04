@@ -331,6 +331,9 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
+    def delete(self, request, *args, **kwargs):
+        pass
+    
     @action(detail=False, methods=['post'])
     def delete_all_fuseki_database(self, request, *args, **kwargs):
         try:
