@@ -35,3 +35,26 @@ def get_update_query(before_triples, new_triples):
 INSERT {{ {insert_clause} }}
 WHERE {{ }} '''
     return query
+
+def json_to_string_value(obj):
+    if obj['type'] == 'uri':
+        uri_str = '<'+ obj['value'] + '>'
+        return uri_str
+    elif obj['type'] == 'literal':
+        value = obj.get('value', '')  # Get the literal value
+        datatype = obj.get('datatype', '')  # Get the datatype if available
+        
+        if datatype.startswith('http://www.w3.org/2001/XMLSchema#'):
+            # Handle XML Schema datatypes
+            #datatype = datatype.replace('http://www.w3.org/2001/XMLSchema#', 'xsd:')
+            return_str = f'\"{value}\"^^{datatype}'
+            print(return_str)
+            return return_str
+        else:
+            # Handle plain literals without a datatype
+            return_str = f'\"{value}\"'
+            print(return_str)
+            return return_str
+    else:
+        # Handle other types (e.g., blank nodes)
+        return obj['value']

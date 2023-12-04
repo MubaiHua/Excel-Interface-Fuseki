@@ -13,7 +13,7 @@ class MappingModel(models.Model):
     db_id = models.ForeignKey(DatabaseModel, help_text='database id', on_delete=models.CASCADE, related_name='db_id')
     name = models.CharField(max_length=100, unique=True)
     query = models.TextField()
-
+    predicate_var_to_val = JSONField(default=dict, help_text="mapping between the excel variables and actual rdf values", null=True)
 class ImportDataModel(models.Model):
     mapping_id = models.ForeignKey(MappingModel, help_text='mapping id', on_delete=models.CASCADE, related_name='import_mapping_id')
     csv = JSONField(default=dict, help_text="csv data", null=True)

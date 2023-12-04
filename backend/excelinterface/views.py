@@ -11,6 +11,7 @@ from .models import DatabaseModel, MappingModel, ImportDataModel, ExportDataMode
 from .serializer import DatabaseModelSerializer, MappingModelSerializer, ImportDataModelSerializer, ExportDataModelSerializer
 from . import functions
 import io
+from SPARQLWrapper import BASIC
 
 FUSEKI_END_POINT = settings.FUSEKI_END_POINT
 username = 'admin'
@@ -66,7 +67,7 @@ def get_type_predicates(request):
     db_name = request.query_params.get('db_name', 'default')  # Provide a default value if not supplied
     selectedType = request.query_params.get('selectedType', 'default')  # Provide a default value if not supplied
 
-    predicate_name = 'p'
+    predicate_name = 'predicate'
 
     # currently the prefix of the graph should be the same in order to retrieve correct data, adjust later based on the ttl file user uploaded
     prefix_string = \
@@ -84,14 +85,8 @@ def get_type_predicates(request):
     response_json = query_result.convert()
     predicates = response_json['results']['bindings']
     predicates_names = []
-    for obj in predicates:
-        value = obj[predicate_name]['value']
-        if value[-4:] == 'type':
-            continue
-        name = value.split("/")[-1]
-        predicates_names.append(name)
-    # print(response_json)
-    return Response(predicates_names)
+    filtered_predicates = [obj for obj in predicates if not obj[predicate_name]['value'].endswith('type')]
+    return Response(filtered_predicates)
 
 @api_view(['POST'])
 def update_database(request):
@@ -109,9 +104,9 @@ def update_database(request):
     new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
     #print(f"the new triples are {new_triples}")
     #get update query for fuseki
-    db_name = "music"
+    db_name = "test4"
     update_query_str = functions.get_update_query(before_triples, new_triples)
-    #print(update_query_str)
+    print(update_query_str)
     fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
 
     query_result = fuseki_update.run_sparql(update_query_str)
@@ -169,7 +164,7 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
             writer.writeheader()
         
             for entry in data:
-                row = {key: entry[key]['value'] if key in entry else None for key in headers}
+                row = {key: functions.json_to_string_value(entry[key]) if key in entry else None for key in headers}
                 writer.writerow(row)
         with open(csv_file_path,'rb') as csv_file:
             csv_file_content = csv_file.read().decode('utf-8')
@@ -196,7 +191,7 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
 
     #@action(detail=False, methods=['post'])
     def create(self, request, *args, **kwargs):
-        print("wehat")
+        #print("wehat")
         db_name = request.data['dbName']
         csv_file = request.FILES['excel_sheet']
         
@@ -224,12 +219,24 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
         print("what")
         update_query_str = functions.get_update_query(before_triples, new_triples)
         print(update_query_str)
-        fuseki_update = FusekiUpdate(f'{FUSEKI_END_POINT}/{db_name}/update', db_name)
-
+        fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
+        
+        fuseki_update.sparql_conn.setHTTPAuth(BASIC)
+        fuseki_update.sparql_conn.setCredentials(username,password)
         query_result = fuseki_update.run_sparql(update_query_str)
 
         #return update_result and turn it into Response format to send back to post request
-
+        data = {
+                    'mapping_id': mapping_id,
+                    'csv': csv_file,
+                    'query': update_query_str
+                }
+        serializer = self.serializer_class(data=data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return Response({'message':'unable to update export database'}, status = 400)
+        
         response_json = query_result.convert()
         response_data = {
                 'message' : response_json['message'],
@@ -329,6 +336,7 @@ class MappingModelViewSet(viewsets.ModelViewSet):
     serializer_class = MappingModelSerializer
 
     def create(self, request, *args, **kwargs):
+        predicate_name = "predicate"
         db_name = request.data['dbName']
         mapping_name = request.data['mappingName']
         selectedType = request.data['selectedType']
@@ -337,8 +345,16 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         prefix_list = db_object.prefix
         prefix_string = "\n".join(prefix_list)
         sparql_query = prefix_string + f"SELECT * WHERE {{ ?{selectedType.lower()} rdf:type :{selectedType} .\n"
-        for predicate in selectedPredicates:
-            sparql_query += f"      ?{selectedType.lower()} :{predicate} ?{predicate} .\n"
+        predicates_json = json.loads(selectedPredicates)
+        predicate_var_to_value = {}
+        for obj in predicates_json:
+            print(obj)
+            predicate_value = functions.json_to_string_value(obj[predicate_name])
+            predicate_var_name = obj[predicate_name]['value'].split('/')[-1]
+            print(predicate_value)
+            print(predicate_var_name)
+            predicate_var_to_value[predicate_var_name] = predicate_value
+            sparql_query += f"      ?{selectedType.lower()} {predicate_value} ?{predicate_var_name} .\n"
         sparql_query += "}\n"
 
         data = {
