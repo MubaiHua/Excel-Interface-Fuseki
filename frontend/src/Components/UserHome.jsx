@@ -1,8 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { MainContext } from '../MainContext';
-import DefineMappings from './DefineMappings';
-import DataAnalyst from './DataAnalyst';
 import Dashboard from './DashBoard';
 
 function UserHome() {
@@ -17,10 +15,7 @@ function UserHome() {
   if (!hasLogin) {
     return <Navigate to="/login" />;
   }
-  if (isUserAdmin) {
-    return <Dashboard userID={userID} userName={userName} />;
-  }
-  return <DataAnalyst />;
+  return <Dashboard userID={userID} userName={userName} isUserAdmin={isUserAdmin} />;
 }
 
 export default UserHome;

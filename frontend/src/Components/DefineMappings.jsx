@@ -11,6 +11,12 @@ import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
 import Checkbox from '@mui/material/Checkbox';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Avatar from '@mui/material/Avatar';
+import StorageIcon from '@mui/icons-material/Storage';
 
 import {
   getFusekiDatasets, getDatabaseTypes, getTypePredicates, generateQuery,
@@ -18,9 +24,34 @@ import {
 
 const steps = ['Select Database', 'Select Data Types', 'Select Attributes of the type'];
 
+function FinishedItem({ finishedList }) {
+  return (
+    <List sx={{ width: '100%', fullWidth: true }}>
+      {finishedList.map((item) => (
+        <ListItem>
+          <ListItemAvatar>
+            <Avatar>
+              <StorageIcon />
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText primary={item.name} secondary={item.name} />
+        </ListItem>
+      ))}
+    </List>
+  );
+}
+
+FinishedItem.propTypes = {
+  finishedList: PropTypes.arrayOf(
+    PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+    }),
+  ).isRequired,
+};
+
 export default function DefineMappings({ userName, userID }) {
   const [activeStep, setActiveStep] = useState(0);
-  const [skipped, setSkipped] = useState(new Set());
 
   const [datasets, setDatasets] = useState([]);
   const [selectedDatabase, setSelectedDatabase] = useState('');
@@ -63,23 +94,12 @@ export default function DefineMappings({ userName, userID }) {
     setSelectedPredicates(event.target.value);
   };
 
-  const isStepOptional = (step) => step === 114514; // place holder for feature
-
-  const isStepSkipped = (step) => skipped.has(step);
-
   const handleNext = () => {
-    let newSkipped = skipped;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
-
     if (activeStep === 0) { // After selecting a dataset
       getDatabaseTypes(selectedDatabase)
         .then((response) => {
           setDataTypes(response);
           setActiveStep((prevActiveStep) => prevActiveStep + 1);
-          setSkipped(newSkipped);
         })
         .catch((error) => {
           console.error('Error fetching data types:', error);
@@ -90,7 +110,6 @@ export default function DefineMappings({ userName, userID }) {
         .then((response) => {
           setPredicates(response);
           setActiveStep((prevActiveStep) => prevActiveStep + 1);
-          setSkipped(newSkipped);
         })
         .catch((error) => {
           console.error('Error fetching predicates:', error);
@@ -108,7 +127,6 @@ export default function DefineMappings({ userName, userID }) {
           const queryLines = response.query.split('\n');
           setGeneratedQuery(queryLines);
           setActiveStep((prevActiveStep) => prevActiveStep + 1);
-          setSkipped(newSkipped);
         })
         .catch((error) => {
           console.error('Error generating query:', error);
@@ -121,54 +139,29 @@ export default function DefineMappings({ userName, userID }) {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleSkip = () => {
-    if (!isStepOptional(activeStep)) {
-      // You probably want to guard against something like this,
-      // it should never occur unless someone's actively trying to break something.
-      throw new Error("You can't skip a step that isn't optional.");
-    }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped((prevSkipped) => {
-      const newSkipped = new Set(prevSkipped.values());
-      newSkipped.add(activeStep);
-      return newSkipped;
-    });
-  };
-
   const handleReset = () => {
     setActiveStep(0);
+    setSelectedDatabase('');
+    setSelectedType('');
+    setSelectedPredicates([]);
   };
 
   return (
     <Box sx={{ width: '100%' }}>
       <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps = {};
-          const labelProps = {};
-          if (isStepOptional(index)) {
-            labelProps.optional = (
-              <Typography variant="caption">Optional</Typography>
-            );
-          }
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
       </Stepper>
 
       {activeStep === 0 && (
-        <Grid container style={{ height: '70%' }}>
+        <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
-            <Typography variant="h4" align="center" gutterBottom>
+            <Typography variant="h6" align="center" gutterBottom>
               Please select the database you would like to access:
             </Typography>
-            <Typography variant="h5">Fuseki Datasets</Typography>
             <Select value={selectedDatabase} onChange={handleDatasetChange} fullWidth>
               {datasets.map((dataset, index) => (
                 <MenuItem key={index} value={dataset}>
@@ -181,9 +174,9 @@ export default function DefineMappings({ userName, userID }) {
       )}
 
       {activeStep === 1 && (
-        <Grid container style={{ height: '70%' }}>
+        <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
-            <Typography variant="h4" align="center" gutterBottom>
+            <Typography variant="h6" align="center" gutterBottom>
               Please select your targeted data type
             </Typography>
             <Select
@@ -198,13 +191,16 @@ export default function DefineMappings({ userName, userID }) {
               ))}
             </Select>
           </Grid>
+          <Grid item xs={6} style={{ padding: '10px' }}>
+            <FinishedItem finishedList={[{ type: 'Database', name: selectedDatabase }]} />
+          </Grid>
         </Grid>
       )}
 
       {activeStep === 2 && (
-        <Grid container style={{ height: '70%' }}>
+        <Grid container style={{ height: '100%' }}>
           <Grid item xs={6} style={{ borderRight: '1px solid #ccc', padding: '10px' }}>
-            <Typography variant="h4" align="center" gutterBottom>
+            <Typography variant="h6" align="center" gutterBottom>
               Please select attributes related to the selected data type
             </Typography>
             <Select
@@ -222,10 +218,13 @@ export default function DefineMappings({ userName, userID }) {
               ))}
             </Select>
           </Grid>
+          <Grid item xs={6} style={{ padding: '10px' }}>
+            <FinishedItem finishedList={[{ type: 'Database', name: selectedDatabase }, { type: 'Targeted Data Type', name: dataTypes }]} />
+          </Grid>
         </Grid>
       )}
 
-      {activeStep === steps.length ? (
+      {activeStep === steps.length && (
         <div>
           <Typography variant="subtitle1" gutterBottom style={{ paddingTop: '20px' }}>
             This is your mapping query
@@ -243,35 +242,33 @@ export default function DefineMappings({ userName, userID }) {
             </Typography>
           </Box>
         </div>
-      )
-        : (
-          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-            <Button
-              color="inherit"
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              sx={{ mr: 1 }}
-            >
-              Back
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            {isStepOptional(activeStep) && (
-            <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-              Skip
-            </Button>
-            )}
-
-            <Button
-              onClick={handleNext}
-              disabled={
+      )}
+      <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+        <Button
+          color="inherit"
+          disabled={activeStep === 0 || activeStep === steps.length}
+          onClick={handleBack}
+          sx={{ mr: 1 }}
+        >
+          Back
+        </Button>
+        <Box sx={{ flex: '1 1 auto' }} />
+        {activeStep === steps.length ? (
+          <Button color="primary" onClick={handleReset}>
+            Create Another Mapping
+          </Button>
+        ) : (
+          <Button
+            onClick={handleNext}
+            disabled={
                 (activeStep === 0 && !selectedDatabase)
                  || (activeStep === 1 && !selectedType)
               }
-            >
-              {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
-            </Button>
-          </Box>
-        ) }
+          >
+            {activeStep === steps.length - 1 ? 'View Your Query' : 'Next'}
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 }

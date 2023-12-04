@@ -2,7 +2,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 import requests, json, csv
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
@@ -196,6 +196,15 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'Fail to create new database'}, status=400)
         except Exception as e:
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
+
+    @action(detail=False, methods=['post'])
+    def delete_all_fuseki_database(self, request, *args, **kwargs):
+        try:
+            DatabaseModel.objects.all().delete()
+            return Response({'message': 'success'}, status=204)
+        except Exception as e:
+            return Response({'message': 'fail'}, status=400)
+
 
 class MappingModelViewSet(viewsets.ModelViewSet):
     queryset = MappingModel.objects.all()
