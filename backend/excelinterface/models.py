@@ -13,7 +13,7 @@ class MappingModel(models.Model):
     db_id = models.ForeignKey(DatabaseModel, help_text='database id', on_delete=models.CASCADE, related_name='db_id')
     query = models.TextField()
 
-class InportDataModel(models.Model):
+class ImportDataModel(models.Model):
     mapping_id = models.ForeignKey(MappingModel, help_text='mapping id', on_delete=models.CASCADE, related_name='import_mapping_id')
     csv = JSONField(default=dict, help_text="csv data", null=True)
     query = models.TextField()

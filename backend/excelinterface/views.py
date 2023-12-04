@@ -2,13 +2,13 @@
 from rest_framework.response import Response
 from rest_framework import status
 from pyfuseki import FusekiUpdate, FusekiQuery
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 import requests, json, csv
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
 from rest_framework import status, viewsets
-from .models import DatabaseModel, MappingModel, InportDataModel
-from .serializer import DatabaseModelSerializer, MappingModelSerializer, InportDataModelSerializer
+from .models import DatabaseModel, MappingModel, ImportDataModel, ExportDataModel
+from .serializer import DatabaseModelSerializer, MappingModelSerializer, ImportDataModelSerializer, ExportDataModelSerializer
 from . import functions
 import io
 
@@ -128,7 +128,118 @@ def update_database(request):
         return Response(response_data, status=400)
     else:
         return Response(response_data, status=200)
+class ExportDataModelViewSet(viewsets.ModelViewSet):
+    queryset = ExportDataModel.objects.all()
+    serializer_class = ExportDataModelSerializer
 
+    def create(self, request, *args, **kwargs):
+        print("we are in")
+        db_name = request.data['dbName']
+
+        mapping_id = request.data['mapping_id']
+
+        query_entry = MappingModel.objects.get(pk=mapping_id)
+        sparql_query = query_entry.query
+
+        #fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
+        fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
+        query_result = fuseki_query.run_sparql(sparql_query)
+        response_json = query_result.convert()
+        json_data = json.dumps(response_json, indent=4)
+        print(json_data)
+        
+        file_path = 'response.json'
+
+        # # Writing JSON data to a file
+        with open(file_path, 'w') as file:
+            file.write(json_data)
+        
+        with open(file_path, 'r', encoding='utf-8') as json_file:
+            json_data = json.load(json_file)
+        
+            # Extracting the data and headers
+        data = json_data['results']['bindings']
+        headers = json_data['head']['vars']
+        #print(headers)
+        
+        # # Write to the CSV file
+        csv_file_path = 'result.csv'
+        with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=headers)
+            writer.writeheader()
+        
+            for entry in data:
+                row = {key: entry[key]['value'] if key in entry else None for key in headers}
+                writer.writerow(row)
+        with open(csv_file_path,'rb') as csv_file:
+            csv_file_content = csv_file.read().decode('utf-8')
+        print("loading psql data")
+        print(csv_file_content)
+        data = {
+                    'mapping_id': mapping_id,
+                    'csv': csv_file_content,
+                    'query': sparql_query
+                }
+        serializer = self.serializer_class(data=data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return Response({'message':'unable to update export database'}, status = 400)
+        
+        response = {'query': sparql_query, 'file_to_download': csv_file_content}
+        return Response(response)
+
+
+class ImportDataModelViewSet(viewsets.ModelViewSet):
+    queryset = ImportDataModel.objects.all()
+    serializer_class = ImportDataModelSerializer
+
+    #@action(detail=False, methods=['post'])
+    def create(self, request, *args, **kwargs):
+        print("wehat")
+        db_name = request.data['dbName']
+        csv_file = request.FILES['excel_sheet']
+        
+        mapping_id = request.data['mapping_id']
+        mapping_entry = ExportDataModel.objects.get(mapping_id=mapping_id)
+        print(mapping_entry)
+        old_csv_data = mapping_entry.csv
+        print(old_csv_data)
+        #old_csv_data = json.dumps(old_csv_data)
+
+        before_triples = functions.csv_to_triples(old_csv_data)
+
+        #print(csv_file)
+        try:
+            csv_file = csv_file.read().decode('utf-8')
+            new_triples = functions.csv_to_triples(csv_file)
+        except:
+            return Response({'message': 'File format incorrect'}, status=400)
+
+        #need to query psql server for the old triples of csv_file
+        #harcoded old_triple for now
+        
+        #print(f"the new triples are {new_triples}")
+        #get update query for fuseki
+        print("what")
+        update_query_str = functions.get_update_query(before_triples, new_triples)
+        print(update_query_str)
+        fuseki_update = FusekiUpdate(f'{FUSEKI_END_POINT}/{db_name}/update', db_name)
+
+        query_result = fuseki_update.run_sparql(update_query_str)
+
+        #return update_result and turn it into Response format to send back to post request
+
+        response_json = query_result.convert()
+        response_data = {
+                'message' : response_json['message'],
+        }
+        #print(response_json)
+        if response_json['message'] != "Update succeeded":
+            print("huh")
+            return Response(response_data, status=400)
+        else:
+            return Response(response_data, status=200)
 class DatabaseModelViewSet(viewsets.ModelViewSet):
     queryset = DatabaseModel.objects.all()
     serializer_class = DatabaseModelSerializer
