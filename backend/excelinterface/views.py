@@ -195,12 +195,17 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
         db_name = request.data['dbName']
         csv_file = request.FILES['excel_sheet']
         
-        mapping_id = request.data['mapping_id']
-        mapping_entry = ExportDataModel.objects.get(mapping_id=mapping_id)
-        print(mapping_entry)
-        old_csv_data = mapping_entry.csv
+        export_id = request.data['export_id']
+        export_entry = ExportDataModel.objects.get(pk=export_id)
+        print(export_entry)
+        old_csv_data = export_entry.csv
         print(old_csv_data)
         #old_csv_data = json.dumps(old_csv_data)
+        export_mapping = export_entry.mapping_id
+        #print(export_mapping)
+        #mapping_entry = MappingModel.objects.get(pk = export_mapping)
+        predicate_var_to_val = json.loads(export_mapping.predicate_var_to_val)
+        print(predicate_var_to_val)
 
         before_triples = functions.csv_to_triples(old_csv_data)
 
@@ -211,6 +216,24 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
         except:
             return Response({'message': 'File format incorrect'}, status=400)
 
+        for i in range(len(before_triples)):
+            var_name = before_triples[i][1]
+            print(var_name)
+            value_name = predicate_var_to_val.get(var_name, -1)
+            if value_name == -1:
+                return Response({'message':'csv column headers have been changed!'}, status=400)
+            else:
+                before_triples[i][1] = value_name
+        print("before triples done")
+        #print(new_triples)
+        for i in range(len(new_triples)):
+            var_name = new_triples[i][1]
+            print(var_name)
+            value_name = predicate_var_to_val.get(var_name, -1)
+            if value_name == -1:
+                return Response({'message':'csv column headers have been changed!'}, status=400)
+            else:
+                new_triples[i][1] = value_name
         #need to query psql server for the old triples of csv_file
         #harcoded old_triple for now
         
@@ -227,7 +250,7 @@ class ImportDataModelViewSet(viewsets.ModelViewSet):
 
         #return update_result and turn it into Response format to send back to post request
         data = {
-                    'mapping_id': mapping_id,
+                    'mapping_id': export_id,
                     'csv': csv_file,
                     'query': update_query_str
                 }
@@ -356,11 +379,12 @@ class MappingModelViewSet(viewsets.ModelViewSet):
             predicate_var_to_value[predicate_var_name] = predicate_value
             sparql_query += f"      ?{selectedType.lower()} {predicate_value} ?{predicate_var_name} .\n"
         sparql_query += "}\n"
-
+        predicate_var_to_val_json = json.dumps(predicate_var_to_value)
         data = {
             'name':mapping_name,
             'db_id': db_object.id,
-            'query': sparql_query
+            'query': sparql_query,
+            'predicate_var_to_val': predicate_var_to_val_json
         }
 
         serializer = self.serializer_class(data = data, many=False)

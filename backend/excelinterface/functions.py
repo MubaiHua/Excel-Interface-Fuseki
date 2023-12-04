@@ -47,7 +47,7 @@ def json_to_string_value(obj):
         if datatype.startswith('http://www.w3.org/2001/XMLSchema#'):
             # Handle XML Schema datatypes
             #datatype = datatype.replace('http://www.w3.org/2001/XMLSchema#', 'xsd:')
-            return_str = f'\"{value}\"^^{datatype}'
+            return_str = f'\"{value}\"^^<{datatype}>'
             print(return_str)
             return return_str
         else:
