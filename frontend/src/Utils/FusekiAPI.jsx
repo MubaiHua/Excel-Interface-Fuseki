@@ -13,3 +13,5 @@ export const generateQuery = (data) => APIManager.post('/api/mapping/', data);
 export const getAllDatabase = () => APIManager.get('/api/database/get_all_databases/');
 
 export const getAllMappings = (data) => APIManager.post('/api/mapping/get_all_mappings/', data);
+
+export const checkDuplicateMappingName = (data) => APIManager.post('/api/mapping/check_name_duplicate/', data);

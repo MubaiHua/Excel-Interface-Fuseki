@@ -20,7 +20,7 @@ import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import TextField from '@mui/material/TextField';
 
 import {
-  getFusekiDatasets, getDatabaseTypes, getTypePredicates, generateQuery,
+  getFusekiDatasets, getDatabaseTypes, getTypePredicates, generateQuery, checkDuplicateMappingName,
 } from '../Utils/FusekiAPI';
 
 const steps = ['Enter a name', 'Select Database', 'Select Data Types', 'Select Attributes of the type'];
@@ -35,7 +35,7 @@ function FinishedItem({ finishedList }) {
               <ViewStreamIcon />
             </Avatar>
           </ListItemAvatar>
-          <ListItemText primary={item.name} secondary={item.name} />
+          <ListItemText primary={item.type} secondary={item.name} />
         </ListItem>
       ))}
     </List>
@@ -68,6 +68,8 @@ export default function DefineMappings({ userName, userID }) {
   const [generatedQuery, setGeneratedQuery] = useState([]);
 
   const [mappingName, setMappingName] = useState('');
+
+  const [dupliacateNameError, setDupliacateNameError] = useState('');
 
   useEffect(() => {
     getFusekiDatasets()
@@ -102,7 +104,18 @@ export default function DefineMappings({ userName, userID }) {
   };
 
   const handleNext = () => {
-    if (activeStep === 1) { // After selecting a dataset
+    if (activeStep === 0) {
+      checkDuplicateMappingName({ name: mappingName })
+        .then((data) => {
+          const { duplicate } = data;
+          if (duplicate) {
+            setDupliacateNameError('Mapping name already exist');
+          } else {
+            setDupliacateNameError('');
+            setActiveStep((prevActiveStep) => prevActiveStep + 1);
+          }
+        });
+    } else if (activeStep === 1) { // After selecting a dataset
       getDatabaseTypes(selectedDatabase)
         .then((response) => {
           setDataTypes(response);
@@ -127,10 +140,10 @@ export default function DefineMappings({ userName, userID }) {
         dbName: selectedDatabase,
         selectedType,
         selectedPredicates,
+        mappingName,
       };
       generateQuery(data)
         .then((response) => {
-          console.log(response);
           const queryLines = response.query.split('\n');
           setGeneratedQuery(queryLines);
           setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -139,8 +152,6 @@ export default function DefineMappings({ userName, userID }) {
           console.error('Error generating query:', error);
           alert("Can't generate query");
         });
-    } else {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
     }
   };
 
@@ -176,7 +187,14 @@ export default function DefineMappings({ userName, userID }) {
             <Typography variant="h6" align="center" gutterBottom>
               Please enter a name for your mapping
             </Typography>
-            <TextField id="outlined-basic" label="Name" variant="outlined" onChange={handleMappingNameChange} />
+            <TextField
+              id="outlined-basic"
+              label="Name"
+              variant="outlined"
+              onChange={handleMappingNameChange}
+              error={!!dupliacateNameError}
+              helperText={dupliacateNameError}
+            />
           </Grid>
         </Grid>
       )}
@@ -188,8 +206,8 @@ export default function DefineMappings({ userName, userID }) {
               Please select the database you would like to access:
             </Typography>
             <Select value={selectedDatabase} onChange={handleDatasetChange} fullWidth>
-              {datasets.map((dataset, index) => (
-                <MenuItem key={index} value={dataset}>
+              {datasets.map((dataset) => (
+                <MenuItem key={dataset} value={dataset}>
                   {dataset}
                 </MenuItem>
               ))}
@@ -220,7 +238,7 @@ export default function DefineMappings({ userName, userID }) {
             </Select>
           </Grid>
           <Grid item xs={6} style={{ padding: '10px' }}>
-            <FinishedItem finishedList={[{ type: 'Database', name: selectedDatabase }]} />
+            <FinishedItem finishedList={[{ type: 'Name', name: mappingName }, { type: 'Database', name: selectedDatabase }]} />
           </Grid>
         </Grid>
       )}
@@ -247,7 +265,7 @@ export default function DefineMappings({ userName, userID }) {
             </Select>
           </Grid>
           <Grid item xs={6} style={{ padding: '10px' }}>
-            <FinishedItem finishedList={[{ type: 'Database', name: selectedDatabase }, { type: 'Targeted Data Type', name: dataTypes }]} />
+            <FinishedItem finishedList={[{ type: 'Name', name: mappingName }, { type: 'Database', name: selectedDatabase }, { type: 'Targeted Data Type', name: dataTypes }]} />
           </Grid>
         </Grid>
       )}
@@ -264,8 +282,8 @@ export default function DefineMappings({ userName, userID }) {
             p={2}
           >
             <Typography variant="body2" component="pre">
-              {generatedQuery.map((line, index) => (
-                <div key={index}>{line}</div>
+              {generatedQuery.map((line) => (
+                <div key={line}>{line}</div>
               ))}
             </Typography>
           </Box>

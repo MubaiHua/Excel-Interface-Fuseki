@@ -10,7 +10,7 @@ function DataImport() {
   const [file, setFile] = useState(null);
   const [database, setDatabase] = useState('');
   const [mapping, setMapping] = useState('');
-  const [jsonData, setJsonData] = useState(null);
+  const [csvData, setCSVData] = useState(null);
   const [allDatabase, setAllDatabase] = useState([]);
   const [allMappings, setAllMappings] = useState([]);
 
@@ -36,10 +36,18 @@ function DataImport() {
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+        // Assuming each line in the CSV file is separated by a newline character
+        const parsedData = fileContent.split('\n');
+
+        // Update the state with the parsed data
+        setCSVData(parsedData);
+      };
+      reader.readAsText(acceptedFiles[0]);
     }
   }, []);
-
   const handleDatabaseChange = (event) => {
     setDatabase(event.target.value);
   };
@@ -49,20 +57,7 @@ function DataImport() {
   };
 
   const handleUpload = async () => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('database', database);
-      formData.append('mapping', mapping);
-
-      // Make API call to handle the file
-      const response = await axios.post('your-api-endpoint', formData);
-
-      // Assuming the API response contains parsed JSON data
-      setJsonData(response.data);
-    } catch (error) {
-      console.error('Error uploading and parsing file:', error);
-    }
+    console.log(csvData);
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -74,7 +69,7 @@ function DataImport() {
   return (
     <Container component="main" maxWidth="md">
       <Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
-        {(database !== '' && database.length === 0) || (mapping !== '' && mapping.length === 0)
+        {(database !== '' && allDatabase.length === 0) || (mapping !== '' && allMappings.length === 0)
           ? (
             <Typography variant="h5" align="center" gutterBottom>
               CSV File Uploader
@@ -90,7 +85,7 @@ function DataImport() {
             </Typography>
           )}
 
-        {!(database !== '' && mapping.length === 0) && (
+        {!(database !== '' && allMappings.length === 0) && (
         <>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -118,8 +113,7 @@ function DataImport() {
                 <MenuItem value="" disabled>
                   Select Mapping
                 </MenuItem>
-                <MenuItem value="mapping1">Mapping 1</MenuItem>
-                <MenuItem value="mapping2">Mapping 2</MenuItem>
+                {allMappings.map((mp) => (<MenuItem value={mp.id}>{mp.name}</MenuItem>))}
               </Select>
             </Grid>
           </Grid>
@@ -156,14 +150,6 @@ function DataImport() {
           <Button variant="contained" color="primary" onClick={handleUpload} fullWidth>
             Submit
           </Button>
-          {jsonData && (
-          <div style={{ marginTop: '20px' }}>
-            <Typography variant="h6" gutterBottom>
-              Parsed JSON Data
-            </Typography>
-            <pre>{JSON.stringify(jsonData, null, 2)}</pre>
-          </div>
-          )}
         </>
         )}
       </Paper>

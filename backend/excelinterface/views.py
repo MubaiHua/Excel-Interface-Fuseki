@@ -394,3 +394,8 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         included_fields = ['name', 'id']
         serializer = self.get_serializer(queryset, many=True, fields=included_fields)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def check_name_duplicate(self, request, *args, **kwargs):
+        name = request.data['name']
+        return Response({'duplicate': MappingModel.objects.filter(name=name).exists()})
