@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+/* eslint-disable max-len */
+import React, { useState, useEffect } from 'react';
 import {
   Button, TextField, MenuItem, Container, TextareaAutosize, FormControl, InputLabel, Select,
 } from '@mui/material';
+import {
+  checkDuplicateMappingName, getFusekiDatasets, createCustomMapping,
+} from '../Utils/FusekiAPI';
 
 function CustomMapping() {
   const [mappingName, setMappingName] = useState('');
   const [selectedDatabase, setSelectedDatabase] = useState('');
   const [sparqlCode, setSparqlCode] = useState('');
+  const [dupliacateNameError, setDupliacateNameError] = useState('');
+  const [datasets, setDatasets] = useState([]);
+
+  useEffect(() => {
+    getFusekiDatasets()
+      .then((response) => {
+        // console.log('API Response:', response);
+        setDatasets(response);
+      })
+      .catch((err) => {
+        console.error('Error fetching datasets:', err);
+        alert('Failed to load datasets');
+      });
+  }, []);
+
+  useEffect(() => {
+    setDupliacateNameError('');
+  }, [mappingName]);
 
   const handleMappingNameChange = (event) => {
     setMappingName(event.target.value);
@@ -21,10 +43,29 @@ function CustomMapping() {
   };
 
   const handleSubmit = () => {
-    // Add your submit logic here
-    console.log('Mapping Name:', mappingName);
-    console.log('Selected Database:', selectedDatabase);
-    console.log('SparQL Code:', sparqlCode);
+    checkDuplicateMappingName({ name: mappingName })
+      .then((data) => {
+        const { duplicate } = data;
+        if (duplicate) {
+          setDupliacateNameError('Mapping name already exist');
+        } else {
+          setDupliacateNameError('');
+        }
+      });
+    if (dupliacateNameError === '') {
+      const payload = {
+        selectedDatabase, mappingName, sparqlCode,
+      };
+      createCustomMapping(payload)
+        .then(() => {
+          setSelectedDatabase('');
+          setMappingName('');
+          setSparqlCode('');
+          alert('Successfully created mapping');
+        }).catch(() => {
+          alert('Fail to create mapping');
+        });
+    }
   };
 
   return (
@@ -36,19 +77,18 @@ function CustomMapping() {
         value={mappingName}
         onChange={handleMappingNameChange}
         style={{ marginBottom: 16 }}
+        error={!!dupliacateNameError}
+        helperText={dupliacateNameError}
       />
 
       <FormControl variant="outlined" fullWidth style={{ marginBottom: 16 }}>
         <InputLabel id="database-label">Database</InputLabel>
-        <Select
-          label="Database"
-          labelId="database-label"
-          value={selectedDatabase}
-          onChange={handleDatabaseChange}
-        >
-          <MenuItem value="database1">Database 1</MenuItem>
-          <MenuItem value="database2">Database 2</MenuItem>
-          {/* Add more databases as needed */}
+        <Select value={selectedDatabase} onChange={handleDatabaseChange} fullWidth>
+          {datasets.map((dataset) => (
+            <MenuItem key={dataset} value={dataset}>
+              {dataset}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
@@ -60,7 +100,7 @@ function CustomMapping() {
         onChange={handleSparqlCodeChange}
       />
 
-      <Button variant="contained" color="primary" onClick={handleSubmit}>
+      <Button variant="contained" color="primary" onClick={handleSubmit} disabled={selectedDatabase === '' || mappingName === '' || sparqlCode === ''}>
         Submit
       </Button>
     </Container>

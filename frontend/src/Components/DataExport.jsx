@@ -5,7 +5,7 @@ import {
   Typography, Button, Container, Grid, MenuItem, Paper, Select, Alert, TextField,
 } from '@mui/material';
 import {
-  getAllDatabase, getAllMappings, getExportExcel, getPredicates,
+  getAllDatabase, getAllMappings, getExportExcel, getPredicates, isCustomMapping, customExport,
 } from '../Utils/FusekiAPI';
 import FilterSelectionTable from './FilterSelectionTable';
 
@@ -19,6 +19,7 @@ function DataExport() {
   const [allPredicates, setAllPredicates] = useState([]);
   const [allFilters, setAllFilters] = useState({});
   const [direction, setDirection] = useState('');
+  const [isCustom, setIsCostom] = useState(false);
 
   useEffect(() => {
     getAllDatabase()
@@ -42,6 +43,13 @@ function DataExport() {
 
   useEffect(() => {
     if (mapping !== '') {
+      isCustomMapping({ mappingID: mapping })
+        .then((data) => {
+          console.log(data);
+          setIsCostom(data.is_custom_mapping);
+        }).catch(() => {
+          alert('Fail to get mappings');
+        });
       getPredicates({ mappingID: mapping })
         .then((data) => {
           setAllPredicates(data);
@@ -82,37 +90,59 @@ function DataExport() {
       return;
     }
     const payload = {
-      dbName, mapping_id: mapping, limit,
+      dbName, mapping_id: mapping,
     };
-    if (orderBy !== '' && direction !== '') {
-      payload.order_by_var = orderBy;
-      payload.order_by = direction;
-    }
-    if (limit !== '') {
-      payload.limit = limit;
-    }
-    if (Object.keys(allFilters).length !== 0) {
-      payload.filter_equals = JSON.stringify(allFilters);
-    }
-    getExportExcel(payload)
-      .then((response) => {
-        const filename = response.headers['content-type'];
-        const blob = new Blob([response.data], { type: 'text/csv' });
-        // Create a download link and trigger a click event
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename; // Specify the file name
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    if (isCustom) {
+      customExport(payload)
+        .then((response) => {
+          const filename = response.headers['content-type'];
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          // Create a download link and trigger a click event
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename; // Specify the file name
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
 
-        // Revoke the Object URL to free up resources
-        URL.revokeObjectURL(url);
-      })
-      .catch(() => {
-        alert('Fail to export');
-      });
+          // Revoke the Object URL to free up resources
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+          alert('Fail to export');
+        });
+    } else {
+      if (orderBy !== '' && direction !== '') {
+        payload.order_by_var = orderBy;
+        payload.order_by = direction;
+      }
+      if (limit !== '') {
+        payload.limit = limit;
+      }
+      if (Object.keys(allFilters).length !== 0) {
+        payload.filter_equals = JSON.stringify(allFilters);
+      }
+      getExportExcel(payload)
+        .then((response) => {
+          const filename = response.headers['content-type'];
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          // Create a download link and trigger a click event
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename; // Specify the file name
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // Revoke the Object URL to free up resources
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+          alert('Fail to export');
+        });
+    }
   };
 
   return (
@@ -165,7 +195,7 @@ function DataExport() {
                 {allMappings.map((mp) => (<MenuItem value={mp.id}>{mp.name}</MenuItem>))}
               </Select>
             </Grid>
-            {(mapping !== '' && database != '') && (
+            {(mapping !== '' && database !== '' && !isCustom) && (
             <>
               <Grid item xs={12}>
                 {' '}
