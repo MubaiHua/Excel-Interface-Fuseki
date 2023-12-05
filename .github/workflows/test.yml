@@ -21,7 +21,7 @@ jobs:
         run: docker-compose up -d
 
       - name: Run Backend Function Unit Test
-        run: docker run --network host cs130-group-project_backend /bin/sh -c “cd /backend/excelinterface && python -m unittest /backend/excelinterface/functions_test.py”
+        run: docker run --network host cs130-group-project_backend /bin/sh -c "cd /backend/excelinterface && python -m unittest /backend/excelinterface/functions_test.py"
       
       - name: Run Backend Django Test
-        run: docker run --network host cs130-group-project_backend /bin/sh -c “cd / && python backend/manage.py test excelinterface”
+        run: docker run --network host cs130-group-project_backend /bin/sh -c "cd / && python backend/manage.py test excelinterface"
