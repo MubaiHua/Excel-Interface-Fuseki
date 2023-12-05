@@ -21,3 +21,5 @@ export const checkDuplicateMappingName = (data) => APIManager.post('/api/mapping
 export const getExportExcel = (data) => APIManager.postGetFile('/api/export/', data);
 
 export const postImportExcel = (data) => APIManager.post('/api/import/', data);
+
+export const getPredicates = (data) => APIManager.post('/api/mapping/get_predicates/', data);

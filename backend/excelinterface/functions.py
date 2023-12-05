@@ -51,24 +51,25 @@ def json_to_string_value(obj):
             # Handle XML Schema datatypes
             # datatype = datatype.replace('http://www.w3.org/2001/XMLSchema#', 'xsd:')
             return_str = f'\"{value}\"^^<{datatype}>'
-            print(return_str)
+            #print(return_str)
             return return_str
         else:
             # Handle plain literals without a datatype
             return_str = f'\"{value}\"'
-            print(return_str)
+            #print(return_str)
             return return_str
     else:
         # Handle other types (e.g., blank nodes)
         return obj['value']
 
 
-def json_to_csv(json_data):
+def json_to_csv(headers, json_data):
     # Assuming the JSON data is a list of dictionaries
     # Use csv.DictWriter to convert the list of dictionaries to CSV
     csv_data = ""
+    csv_data += ','.join(headers) + '\n'  # Write header
     if json_data:
-        csv_data += ','.join(json_data[0].keys()) + '\n'  # Write header
+        
         for item in json_data:
             csv_data += ','.join(str(item[key]) for key in item.keys()) + '\n'
     csv_data = csv_data.replace('"', '"""')

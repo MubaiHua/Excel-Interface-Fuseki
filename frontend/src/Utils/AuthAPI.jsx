@@ -10,7 +10,8 @@ export default class AuthAPI {
     return client.post(endpoint, data)
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in POST request to ${endpoint}:`, error);
+        console.log(`Error in POST request to ${endpoint}:`, error);
+        return error;
       });
   }
 
