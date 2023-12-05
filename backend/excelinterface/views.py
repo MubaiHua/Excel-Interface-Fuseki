@@ -98,13 +98,13 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
 
             mapping_id = request.data['mapping_id']
 
-            
             query_entry = MappingModel.objects.get(pk=mapping_id)
             sparql_query = query_entry.query
-            #print(sparql_query)
+            # print(sparql_query)
             if "filter_equals" in request.data:
-                #print("in filters")
-                filter = request.data['filter_equals'] #json of var and values to compare e.g. {"name": "\"Please Please Me\"", "count": "42"} (quotations included for string literals)
+                # print("in filters")
+                filter = request.data[
+                    'filter_equals']  # json of var and values to compare e.g. {"name": "\"Please Please Me\"", "count": "42"} (quotations included for string literals)
                 filter = json.loads(filter) if len(filter) != 0 else {}
                 filter_queries = []
                 for key in filter:
@@ -113,38 +113,38 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
                 sparql_query = sparql_query[:-1]
                 for filter_query in filter_queries:
                     sparql_query += filter_query
-                sparql_query+='}'
-                #print(sparql_query)
+                sparql_query += '}'
+                # print(sparql_query)
             if "order_by_var" in request.data:
-                order_by_var = request.data['order_by_var'] #variable name to order by e.g. name
-                order_by = request.data['order_by'] #asc or desc
+                order_by_var = request.data['order_by_var']  # variable name to order by e.g. name
+                order_by = request.data['order_by']  # asc or desc
                 order_query = f'ORDER BY {order_by}(?{order_by_var})\n'
                 sparql_query += order_query
             if "limit" in request.data:
-                limit = request.data['limit'] #numeric value
+                limit = request.data['limit']  # numeric value
                 limit_query = f'LIMIT {limit}\n'
                 sparql_query += limit_query
-            
-            #print(sparql_query)
 
+            # print(sparql_query)
 
             # fuseki_update = FusekiUpdate('http://localhost:3030', db_name)
             fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
             try:
                 query_result = fuseki_query.run_sparql(sparql_query)
             except:
-                return Response({'message': 'bad query to fuseki, check if your filter values are valid data types!'}, status=400)
+                return Response({'message': 'bad query to fuseki, check if your filter values are valid data types!'},
+                                status=400)
             response_json = query_result.convert()
-            #print("we are past the query")
+            # print("we are past the query")
             data = response_json['results']['bindings']
             headers = response_json['head']['vars']
             row_list = []
             for entry in data:
                 row = {key: json_to_string_value(entry[key]) if key in entry else None for key in headers}
                 row_list.append(row)
-            #print(type(headers))
+            # print(type(headers))
             csv_data = json_to_csv(headers, row_list)
-            #print(csv_data)
+            # print(csv_data)
             data = {
                 'mapping_id': mapping_id,
                 'csv': csv_data,
@@ -166,6 +166,7 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'message': 'unable to update export database'}, status=400)
+
     @action(detail=False, methods=['post'])
     def get_all_exports(self, request, *args, **kwargs):
         mapping_id = request.data['mappingID']
@@ -173,6 +174,51 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
         included_fields = ['id']
         serializer = self.get_serializer(queryset, many=True, fields=included_fields)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def custom_export(self, request, *args, **kwargs):
+        try:
+            mapping_id = request.data['mapping_id']
+            db_name = request.data['dbName']
+            query_entry = MappingModel.objects.get(pk=mapping_id)
+            sparql_query = query_entry.query
+            fuseki_query = FusekiQuery(FUSEKI_END_POINT, db_name)
+            try:
+                query_result = fuseki_query.run_sparql(sparql_query)
+            except:
+                return Response({'message': 'bad query to fuseki, check if your filter values are valid data types!'},
+                                status=400)
+            response_json = query_result.convert()
+            # print("we are past the query")
+            data = response_json['results']['bindings']
+            headers = response_json['head']['vars']
+            row_list = []
+            for entry in data:
+                row = {key: json_to_string_value(entry[key]) if key in entry else None for key in headers}
+                row_list.append(row)
+            # print(type(headers))
+            csv_data = json_to_csv(headers, row_list)
+            # print(csv_data)
+            data = {
+                'mapping_id': mapping_id,
+                'csv': csv_data,
+                'query': sparql_query
+            }
+            serializer = self.serializer_class(data=data, many=False)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response({'message': 'unable to update export database'}, status=400)
+            export_id = serializer.data['id']
+            response = HttpResponse(content_type=f"{export_id}.csv")
+            response['Content-Disposition'] = f'attachment; filename="{export_id}.csv"'
+
+            # Write the CSV data to the response
+            response.write(csv_data)
+
+            return response
+        except:
+            return Response({'message': 'unable to export'}, status=400)
 
 class ImportDataModelViewSet(viewsets.ModelViewSet):
     queryset = ImportDataModel.objects.all()
@@ -388,6 +434,27 @@ class MappingModelViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Fail to create new mapping'}, status=400)
 
     @action(detail=False, methods=['post'])
+    def create_custom_mapping(self, request, *args, **kwargs):
+        db_name = request.data['selectedDatabase']
+        db_object = DatabaseModel.objects.get(name=db_name)
+        db_id = db_object.id
+        mapping_name = request.data['mappingName']
+        query = request.data['sparqlCode']
+        data = {
+            'db_id': db_id,
+            'name': mapping_name,
+            'query': query,
+            'is_custom_mapping': True
+        }
+        serializer = self.get_serializer(data=data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response({'message': 'Fail to create new mapping'}, status=400)
+
+    @action(detail=False, methods=['post'])
     def get_all_mappings(self, request, *args, **kwargs):
         database_id = request.data['databaseID']
         queryset = MappingModel.objects.filter(db_id=database_id)
@@ -401,12 +468,26 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         return Response({'duplicate': MappingModel.objects.filter(name=name).exists()})
 
     @action(detail=False, methods=['post'])
-    def get_predicates(self,request, *args, **kwargs ):
-        mapping_id = request.data['mappingID']
-        queryset = MappingModel.objects.get(id=mapping_id)
-        included_fields = ['id', 'predicate_var_to_val']
-        serializer = self.get_serializer(queryset, many=False, fields=included_fields)
-        result = serializer.data['predicate_var_to_val']
-        predicates_dict = json.loads(result)
-        predicates_name_list = list(predicates_dict)
-        return Response(predicates_name_list)
+    def get_predicates(self, request, *args, **kwargs):
+        try:
+            mapping_id = request.data['mappingID']
+            queryset = MappingModel.objects.get(id=mapping_id)
+            included_fields = ['id', 'predicate_var_to_val']
+            serializer = self.get_serializer(queryset, many=False, fields=included_fields)
+            result = serializer.data['predicate_var_to_val']
+            predicates_dict = json.loads(result)
+            predicates_name_list = list(predicates_dict)
+            return Response(predicates_name_list)
+        except:
+            return Response({'message': 'Fail'}, status=400)
+
+    @action(detail=False, methods=['post'])
+    def is_custom_mapping(self, request, *args, **kwargs):
+        try:
+            mapping_id = request.data['mappingID']
+            queryset = MappingModel.objects.get(id=mapping_id)
+            included_fields = ['id', 'is_custom_mapping']
+            serializer = self.get_serializer(queryset, many=False, fields=included_fields)
+            return Response(serializer.data)
+        except:
+            return Response({'message': 'Fail'}, status=400)

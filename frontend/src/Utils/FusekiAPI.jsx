@@ -23,3 +23,9 @@ export const getExportExcel = (data) => APIManager.postGetFile('/api/export/', d
 export const postImportExcel = (data) => APIManager.post('/api/import/', data);
 
 export const getPredicates = (data) => APIManager.post('/api/mapping/get_predicates/', data);
+
+export const createCustomMapping = (data) => APIManager.post('/api/mapping/create_custom_mapping/', data);
+
+export const isCustomMapping = (data) => APIManager.post('/api/mapping/is_custom_mapping/', data);
+
+export const customExport = (data) => APIManager.postGetFile('/api/export/custom_export/', data);

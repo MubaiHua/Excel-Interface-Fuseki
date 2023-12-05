@@ -14,6 +14,7 @@ class MappingModel(models.Model):
     name = models.CharField(max_length=100, unique=True)
     query = models.TextField()
     predicate_var_to_val = JSONField(default=dict, help_text="mapping between the excel variables and actual rdf values", null=True)
+    is_custom_mapping = models.BooleanField(default=False)
 
 class ExportDataModel(models.Model):
     mapping_id = models.ForeignKey(MappingModel, help_text='mapping id', on_delete=models.CASCADE,
