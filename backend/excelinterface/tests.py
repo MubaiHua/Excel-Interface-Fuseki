@@ -1,7 +1,7 @@
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from rest_framework import status
-from .views import list_fuseki_datasets, get_database_types, update_database
+from .views import list_fuseki_datasets
 from .models import DatabaseModel
 from unittest.mock import patch, MagicMock
 
