@@ -22,7 +22,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import StorageIcon from '@mui/icons-material/Storage';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import DefineMappings from './DefineMappings';
-import DatabaseOverview from './DatabaseOverview';
+import Overview from './Overview';
 import AddDatabase from './AddDatabase';
 import DataImport from './DataImport';
 import DataExport from './DataExport';
@@ -154,7 +154,7 @@ export default function Dashboard({ userID, userName, isUserAdmin }) {
         >
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            {tab === 'Overview' && (<DatabaseOverview userID={userID} userName={userName} />)}
+            {tab === 'Overview' && (<Overview userID={userID} userName={userName} />)}
             {tab === 'Create Mapping' && (<DefineMappings userID={userID} userName={userName} />)}
             {tab === 'Add Database' && (<AddDatabase userID={userID} userName={userName} />)}
             {tab === 'Import Data' && (<DataImport userID={userID} userName={userName} />)}

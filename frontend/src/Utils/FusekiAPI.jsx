@@ -6,6 +6,8 @@ export const getDatabaseTypes = (dbName) => APIManager.get(`/api/get_database_ty
 
 export const addDatabaseFile = (data) => APIManager.post('/api/database/', data);
 
+export const deleteDatabase = (data) => APIManager.post('/api/database/delete_database/', data);
+
 export const getTypePredicates = (dbName, selectedType) => APIManager.get(`/api/get_type_predicates/?db_name=${encodeURIComponent(dbName)}&selectedType=${encodeURIComponent(selectedType)}`);
 
 export const generateQuery = (data) => APIManager.post('/api/mapping/', data);
