@@ -37,14 +37,20 @@ class TestFunctions(unittest.TestCase):
         result = json_to_string_value(json_obj)
         self.assertEqual(result, expected_result)
 
-    def test_json_to_csv(self):
+    def test_json_to_csv_with_headers(self):
+        headers = ['id', 'name', 'age']
+        
         json_data = [
-            {'key1': 'value1', 'key2': 'value2'},
-            {'key1': 'value3', 'key2': 'value4'}
+            {'id': '101', 'name': 'John', 'age': '30'},
+            {'id': '102', 'name': 'Jane', 'age': '25'},
+            {'id': '103', 'name': 'Doe', 'age': '22'}
         ]
-        expected_csv = 'key1,key2\nvalue1,value2\nvalue3,value4\n'
-        result = json_to_csv(json_data)
-        self.assertEqual(result, expected_csv)
+        
+        expected_csv = 'id,name,age\n101,John,30\n102,Jane,25\n103,Doe,22\n'
+        
+        result_csv = json_to_csv(headers, json_data)
+        
+        self.assertEqual(result_csv, expected_csv)
 
 if __name__ == '__main__':
     unittest.main()
