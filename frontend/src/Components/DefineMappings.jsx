@@ -193,7 +193,7 @@ export default function DefineMappings({ userName, userID }) {
             </Typography>
             <TextField
               id="outlined-basic"
-              label="Name"
+              label="Mapping Name"
               variant="outlined"
               onChange={handleMappingNameChange}
               error={!!dupliacateNameError}
@@ -269,7 +269,7 @@ export default function DefineMappings({ userName, userID }) {
             </Select>
           </Grid>
           <Grid item xs={6} style={{ padding: '10px' }}>
-            <FinishedItem finishedList={[{ type: 'Name', name: mappingName }, { type: 'Database', name: selectedDatabase }, { type: 'Targeted Data Type', name: dataTypes }]} />
+            <FinishedItem finishedList={[{ type: 'Name', name: mappingName }, { type: 'Database', name: selectedDatabase }, { type: 'Targeted Data Type', name: selectedType }]} />
           </Grid>
         </Grid>
       )}
