@@ -11,8 +11,8 @@ export default class APIManager {
     })
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in GET request to ${endpoint}:`, error);
-        throw error;
+        console.log(`Error in GET request to ${endpoint}:`, error);
+        return error;
       });
   }
 
@@ -25,8 +25,8 @@ export default class APIManager {
     })
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in POST request to ${endpoint}:`, error);
-        throw error;
+        console.log(`Error in POST request to ${endpoint}:`, error);
+        return error;
       });
   }
 
@@ -49,8 +49,8 @@ export default class APIManager {
     })
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in PUT request to ${endpoint}:`, error);
-        throw error;
+        console.log(`Error in PUT request to ${endpoint}:`, error);
+        return error;
       });
   }
 
@@ -63,8 +63,8 @@ export default class APIManager {
     })
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in PATCH request to ${endpoint}:`, error);
-        throw error;
+        console.log(`Error in PATCH request to ${endpoint}:`, error);
+        return error;
       });
   }
 
@@ -77,8 +77,8 @@ export default class APIManager {
     })
       .then((response) => response.data)
       .catch((error) => {
-        console.error(`Error in DELETE request to ${endpoint}:`, error);
-        throw error;
+        console.log(`Error in DELETE request to ${endpoint}:`, error);
+        return error;
       });
   }
 }
