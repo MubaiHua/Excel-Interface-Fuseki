@@ -373,6 +373,21 @@ class DatabaseModelViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Fail to create new database', 'error': e}, status=400)
 
     @action(detail=False, methods=['post'])
+    def delete_database(self, request, *args, **kwargs):
+        try:
+            db_name = request.data['databaseName']
+            api_url = f'{FUSEKI_END_POINT}/$/datasets/{db_name}'
+            response = requests.delete(api_url, auth=auth_obj)
+            if response.status_code == 200:
+                DatabaseModel.objects.get(name=db_name).delete()
+                return Response({'message': 'success'}, status=204)
+            else:
+                return Response({'message': 'fail'}, status=400)
+        except Exception as e:
+            return Response({'message': 'fail'}, status=400)
+
+    
+    @action(detail=False, methods=['post'])
     def delete_all_fuseki_database(self, request, *args, **kwargs):
         try:
             DatabaseModel.objects.all().delete()
