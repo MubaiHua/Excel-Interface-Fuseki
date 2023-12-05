@@ -87,43 +87,6 @@ def get_type_predicates(request):
     return Response(filtered_predicates)
 
 
-@api_view(['POST'])
-def update_database(request):
-    csv_file = request.FILES['excel_sheet']
-    # print(csv_file)
-    try:
-        csv_file = csv_file.read().decode('utf-8')
-        new_triples = csv_to_triples(csv_file)
-    except:
-        return Response({'message': 'File format incorrect'}, status=400)
-
-    # need to query psql server for the old triples of csv_file
-    # harcoded old_triple for now
-    before_triples = new_triples
-    new_triples[0][2] = "<http://stardog.com/tutorial/AROOO>"
-    # print(f"the new triples are {new_triples}")
-    # get update query for fuseki
-    db_name = "test4"
-    update_query_str = get_update_query(before_triples, new_triples)
-    # print(update_query_str)
-    fuseki_update = FusekiUpdate(FUSEKI_END_POINT, db_name)
-
-    query_result = fuseki_update.run_sparql(update_query_str)
-
-    # return update_result and turn it into Response format to send back to post request
-
-    response_json = query_result.convert()
-    response_data = {
-        'message': response_json['message'],
-    }
-    # print(response_json)
-    if response_json['message'] != "Update succeeded":
-        # print("huh")
-        return Response(response_data, status=400)
-    else:
-        return Response(response_data, status=200)
-
-
 class ExportDataModelViewSet(viewsets.ModelViewSet):
     queryset = ExportDataModel.objects.all()
     serializer_class = ExportDataModelSerializer
@@ -142,7 +105,7 @@ class ExportDataModelViewSet(viewsets.ModelViewSet):
             if "filter_equals" in request.data:
                 #print("in filters")
                 filter = request.data['filter_equals'] #json of var and values to compare e.g. {"name": "\"Please Please Me\"", "count": "42"} (quotations included for string literals)
-                filter = json.loads(filter)
+                filter = json.loads(filter) if len(filter) != 0 else {}
                 filter_queries = []
                 for key in filter:
                     filter_query = f'FILTER (?{key} = {filter[key]}) .\n'
@@ -389,8 +352,8 @@ class MappingModelViewSet(viewsets.ModelViewSet):
         mapping_name = request.data['mappingName']
         selectedType = request.data['selectedType']
         selectedPredicates = request.data['predicateList']
-        print("selectedPredicates")
-        print(type(selectedPredicates))
+        # print("selectedPredicates")
+        # print(type(selectedPredicates))
         db_object = DatabaseModel.objects.get(name=db_name)
         prefix_list = db_object.prefix
         prefix_string = "\n".join(prefix_list)
@@ -433,3 +396,14 @@ class MappingModelViewSet(viewsets.ModelViewSet):
     def check_name_duplicate(self, request, *args, **kwargs):
         name = request.data['name']
         return Response({'duplicate': MappingModel.objects.filter(name=name).exists()})
+
+    @action(detail=False, methods=['post'])
+    def get_predicates(self,request, *args, **kwargs ):
+        mapping_id = request.data['mappingID']
+        queryset = MappingModel.objects.get(id=mapping_id)
+        included_fields = ['id', 'predicate_var_to_val']
+        serializer = self.get_serializer(queryset, many=False, fields=included_fields)
+        result = serializer.data['predicate_var_to_val']
+        predicates_dict = json.loads(result)
+        predicates_name_list = list(predicates_dict)
+        return Response(predicates_name_list)

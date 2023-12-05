@@ -104,21 +104,22 @@ function DataImport() {
   return (
     <Container component="main" maxWidth="md">
       <Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
-        {(database !== '' && allDatabase.length === 0) || (mapping !== '' && allMappings.length === 0)
-          ? (
-            <Typography variant="h5" align="center" gutterBottom>
-              CSV File Uploader
-            </Typography>
-          )
-          : allDatabase.length === 0 ? (
-            <Typography variant="h5" align="center" gutterBottom>
-              No database available
-            </Typography>
-          ) : (
-            <Typography variant="h5" align="center" gutterBottom>
-              No mapping in this database available
-            </Typography>
-          )}
+        {(allDatabase.length !== 0 || (database && allMappings.length !== 0)) && (
+        <Typography variant="h5" align="center" gutterBottom>
+          CSV File Uploader
+        </Typography>
+        )}
+
+        {(allDatabase.length === 0) && (
+        <Typography variant="h5" align="center" gutterBottom>
+          No database available
+        </Typography>
+        )}
+        {(database && allMappings.length === 0) && (
+        <Typography variant="h5" align="center" gutterBottom>
+          No mapping available
+        </Typography>
+        )}
 
         {!(database !== '' && allMappings.length === 0) && (
         <>
