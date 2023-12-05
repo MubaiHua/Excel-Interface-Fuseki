@@ -59,8 +59,8 @@ function Login() {
       const payload = {
         token: getJWTToken(),
       };
-      AuthAPI.verifyCurrentUser(payload)
-        .then(() => {
+      AuthAPI.verifyCurrentUser(payload).then((response) => {
+        if (response) {
           CommonAPI.getCurrentUser()
             .then((res) => {
               const {
@@ -76,10 +76,11 @@ function Login() {
             .then((id) => {
               navigate(`/home/${id}`);
             });
-        })
-        .catch(() => {
-          console.log('Need Login');
-        });
+        }
+      }).catch(() => {
+        console.log('here');
+        console.log('Need Login');
+      });
     }
   }, []); // Empty dependency array means this effect runs only once
 
