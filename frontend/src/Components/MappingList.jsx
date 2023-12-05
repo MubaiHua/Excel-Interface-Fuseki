@@ -4,7 +4,7 @@ import {
   Typography, Container, Grid, MenuItem, Paper, Select, List, ListItem, ListItemText, ListItemIcon,
 } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
-import { getAllDatabase, getAllMappings, getExportExcel } from '../Utils/FusekiAPI';
+import { getAllDatabase, getAllMappings } from '../Utils/FusekiAPI';
 
 function MappingList() {
   const [database, setDatabase] = useState('');

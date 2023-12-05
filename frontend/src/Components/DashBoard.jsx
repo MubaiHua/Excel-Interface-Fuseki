@@ -25,6 +25,7 @@ import DatabaseOverview from './DatabaseOverview';
 import AddDatabase from './AddDatabase';
 import DataImport from './DataImport';
 import DataExport from './DataExport';
+import MappingList from './MappingList';
 
 const drawerWidth = 240;
 
@@ -150,6 +151,7 @@ export default function Dashboard({ userID, userName, isUserAdmin }) {
             {tab === 'Add Database' && (<AddDatabase userID={userID} userName={userName} />)}
             {tab === 'Import Data' && (<DataImport userID={userID} userName={userName} />)}
             {tab === 'Export Data' && (<DataExport userID={userID} userName={userName} />)}
+            {tab === 'Mappings' && (<MappingList userID={userID} userName={userName} />)}
           </Container>
         </Box>
       </Box>
