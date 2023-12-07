@@ -94,11 +94,9 @@ function SignUp() {
     };
 
     AuthAPI.signup(payload)
-      .then((res) => {
-        if (res.status === 201) {
-          alert('Please check your email to activate your account');
-          navigate('/login');
-        }
+      .then(() => {
+        alert('Please check your email to activate your account');
+        navigate('/login');
       })
       .catch((err) => {
         const { response } = err;
