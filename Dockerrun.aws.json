@@ -137,7 +137,7 @@
               }
           ],
           "essential": true,
-          "memory": 2048,
+          "memory": 2560,
           "cpu": 512,
           "image": "stain/jena-fuseki",
           "mountPoints": [
