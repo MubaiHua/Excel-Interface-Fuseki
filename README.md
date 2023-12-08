@@ -8,4 +8,10 @@ This project shall develop a web application that allows engineers to define one
 This web application will give the user a UI to assist in specifying mappings and storing the mappings in a database. It will also give the UI to import./export the Excel sheet based on a mapping. The app can be implemented with any technology stack, but the knowledge base needs to be Fuseki.
 ![image](https://github.com/MubaiHua/CS130-Group-Project/assets/76729945/6a83af7e-03a4-4ede-8978-3f445fb42d29)
 
-To run the application locally, please refer to the README.md file in both the backend and frontend folder
+# To run the application locally
+1. make sure to have Docker Desktop installed
+2. run the following command at the root directory to build all docker containers:
+    ```
+    docker-compose up -d
+    ```
+3. after all containers are up, enter `http://localhost:8080/` on your web browser to open the locally running web application 
