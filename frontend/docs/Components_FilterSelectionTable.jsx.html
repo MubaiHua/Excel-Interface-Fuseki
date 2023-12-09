@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/FilterSelectionTable.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/FilterSelectionTable.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  useTheme,
+} from '@mui/material';
+
+/**
+ * React component for a dynamic table with predicate and text input fields.
+ * @component
+ * @param {Object} props - The component props.
+ * @param {string[]} props.allPredicates - An array of available predicates for selection.
+ * @param {function} props.onDataUpdate - A callback function to handle data updates.
+ * @returns {JSX.Element} MyTable component.
+ */
+function MyTable({ allPredicates, onDataUpdate }) {
+  const theme = useTheme();
+  const [data, setData] = useState([]);
+
+  /**
+   * Handles changes in the selected predicate for a specific row.
+   * @param {number} index - The index of the row in the data array.
+   * @param {string} value - The selected predicate value.
+   */
+  const handlePredicateChange = (index, value) => {
+    const newData = [...data];
+    newData[index].predicate = value;
+    setData(newData);
+    onDataUpdate(newData); // Call the callback with updated data
+  };
+
+  /**
+   * Handles changes in the text input for a specific row.
+   * @param {number} index - The index of the row in the data array.
+   * @param {string} value - The text input value.
+   */
+  const handleTextChange = (index, value) => {
+    const newData = [...data];
+    newData[index].text = value;
+    setData(newData);
+    onDataUpdate(newData); // Call the callback with updated data
+  };
+
+  /**
+   * Adds a new row to the table.
+   */
+  const handleAddRow = () => {
+    const newData = [...data, { predicate: '', text: '' }];
+    setData(newData);
+    onDataUpdate(newData); // Call the callback with updated data
+  };
+
+  /**
+   * Deletes a row from the table.
+   * @param {number} index - The index of the row to be deleted.
+   */
+  const handleDeleteRow = (index) => {
+    const newData = [...data];
+    newData.splice(index, 1);
+    setData(newData);
+    onDataUpdate(newData); // Call the callback with updated data
+  };
+
+  /**
+   * Trigger the callback when the component mounts and whenever the data changes.
+   */
+  useEffect(() => {
+    onDataUpdate(data);
+  }, [data, onDataUpdate]);
+
+  return (
+    &lt;TableContainer component={Paper}>
+      &lt;Table>
+        &lt;TableHead>
+          &lt;TableRow>
+            &lt;TableCell
+              style={{
+                color: theme.palette.primary.main,
+                padding: '8px',
+                border: `1px solid ${theme.palette.primary.main}`,
+                backgroundColor: 'transparent',
+              }}
+            >
+              Predicate
+            &lt;/TableCell>
+            &lt;TableCell
+              style={{
+                color: theme.palette.primary.main,
+                padding: '8px',
+                border: `1px solid ${theme.palette.primary.main}`,
+                backgroundColor: 'transparent',
+              }}
+            >
+              Text
+            &lt;/TableCell>
+            &lt;TableCell
+              style={{
+                color: theme.palette.primary.main,
+                padding: '8px',
+                border: `1px solid ${theme.palette.primary.main}`,
+                backgroundColor: 'transparent',
+              }}
+            >
+              Action
+            &lt;/TableCell>
+          &lt;/TableRow>
+        &lt;/TableHead>
+        &lt;TableBody>
+          {data.map((row, index) => (
+            &lt;TableRow key={index}>
+              &lt;TableCell>
+                &lt;FormControl fullWidth>
+                  &lt;InputLabel>Select Predicate&lt;/InputLabel>
+                  &lt;Select
+                    value={row.predicate}
+                    onChange={(e) => handlePredicateChange(index, e.target.value)}
+                  >
+                    {allPredicates.map((predicate, index) => (
+                      &lt;MenuItem key={index} value={predicate}>
+                        {predicate}
+                      &lt;/MenuItem>
+                    ))}
+                  &lt;/Select>
+                &lt;/FormControl>
+              &lt;/TableCell>
+              &lt;TableCell>
+                &lt;TextField
+                  fullWidth
+                  value={row.text}
+                  onChange={(e) => handleTextChange(index, e.target.value)}
+                />
+              &lt;/TableCell>
+              &lt;TableCell>
+                &lt;Button variant="outlined" color="secondary" onClick={() => handleDeleteRow(index)}>
+                  Delete
+                &lt;/Button>
+              &lt;/TableCell>
+            &lt;/TableRow>
+          ))}
+        &lt;/TableBody>
+      &lt;/Table>
+      &lt;Button variant="outlined" color="primary" onClick={handleAddRow}>
+        Add Row
+      &lt;/Button>
+    &lt;/TableContainer>
+  );
+}
+
+MyTable.propTypes = {
+  allPredicates: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onDataUpdate: PropTypes.func.isRequired,
+};
+
+export default MyTable;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

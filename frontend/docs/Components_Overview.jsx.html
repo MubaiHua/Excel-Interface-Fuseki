@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/Overview.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/Overview.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import {
+  Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography,
+} from '@mui/material';
+import {
+  getFusekiDatasets, deleteDatabase,
+} from '../Utils/FusekiAPI';
+
+/**
+ * React component for displaying an overview of databases.
+ * @component
+ * @returns {JSX.Element} Overview component.
+ */
+function Overview() {
+  const [databaseList, setDatabaseList] = useState([]);
+
+  /**
+   * Fetches Fuseki datasets on component mount.
+   */
+  useEffect(() => {
+    getFusekiDatasets()
+      .then((response) => {
+        setDatabaseList(response);
+      })
+      .catch((err) => {
+        console.error('Error fetching datasets:', err);
+        alert('Failed to load datasets');
+      });
+  }, []);
+
+  /**
+   * Handles the delete action for a database.
+   * @param {string} databaseName - The name of the database to delete.
+   */
+  const handleDelete = (databaseName) => {
+    deleteDatabase({ databaseName })
+      .then(() => { alert('Delete successful'); })
+      .catch(() => { alert('Fail to delete'); });
+  };
+
+  /**
+   * Handles the export action for a database.
+   * @param {string} databaseName - The name of the database to export.
+   */
+  const handleExport = (databaseName) => {
+    const APIEndpoint = String(process.env.REACT_APP_ENDPOINT).replace(':8000', ':3030');
+    const externalLink = `${APIEndpoint}/${databaseName}/data`;
+
+    const newWindow = window.open();
+    const anchor = newWindow.document.createElement('a');
+    anchor.href = externalLink;
+    anchor.download = `${databaseName}.ttl`;
+
+    newWindow.document.body.appendChild(anchor);
+    anchor.click();
+    newWindow.document.body.removeChild(anchor);
+  };
+
+  return (
+    &lt;>
+      &lt;Typography variant="h5" align="left" style={{ padding: '20px', marginTop: '20px' }}>
+        Overview
+      &lt;/Typography>
+      &lt;TableContainer component={Paper}>
+        &lt;Table>
+          &lt;TableHead>
+            &lt;TableRow>
+              &lt;TableCell>Database Name&lt;/TableCell>
+              &lt;TableCell>Actions&lt;/TableCell>
+            &lt;/TableRow>
+          &lt;/TableHead>
+          &lt;TableBody>
+            {databaseList.map((database) => (
+              &lt;TableRow key={database}>
+                &lt;TableCell>{database}&lt;/TableCell>
+                &lt;TableCell>
+                  &lt;Button variant="outlined" color="secondary" onClick={() => handleDelete(database)}>
+                    Delete
+                  &lt;/Button>
+                  &lt;Button variant="outlined" color="primary" onClick={() => handleExport(database)}>
+                    Export
+                  &lt;/Button>
+                &lt;/TableCell>
+              &lt;/TableRow>
+            ))}
+          &lt;/TableBody>
+        &lt;/Table>
+      &lt;/TableContainer>
+    &lt;/>
+  );
+}
+
+export default Overview;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

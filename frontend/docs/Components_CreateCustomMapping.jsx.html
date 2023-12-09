@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/CreateCustomMapping.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/CreateCustomMapping.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import {
+  Button, TextField, MenuItem, Container, TextareaAutosize, FormControl, InputLabel, Select,
+} from '@mui/material';
+import {
+  checkDuplicateMappingName, getFusekiDatasets, createCustomMapping,
+} from '../Utils/FusekiAPI';
+
+/**
+ * React component for creating a custom mapping.
+ *
+ * @component
+ * @returns {JSX.Element} JSX.Element
+ */
+function CustomMapping() {
+  /**
+   * State variables for managing form inputs and errors
+   */
+  const [mappingName, setMappingName] = useState('');
+  const [selectedDatabase, setSelectedDatabase] = useState('');
+  const [sparqlCode, setSparqlCode] = useState('');
+  const [duplicateNameError, setDuplicateNameError] = useState('');
+  const [datasets, setDatasets] = useState([]);
+
+  /**
+   * Effect hook to fetch datasets when the component mounts.
+   */
+  useEffect(() => {
+    getFusekiDatasets()
+      .then((response) => {
+        setDatasets(response);
+      })
+      .catch((err) => {
+        console.error('Error fetching datasets:', err);
+        setError('Failed to load datasets');
+      })
+      .finally(() => {
+      });
+  }, []);
+
+  /**
+   * Event handler for handling changes in the mapping name input.
+   *
+   * @param {React.ChangeEvent&lt;HTMLInputElement>} event - The change event object.
+   */
+  const handleMappingNameChange = (event) => {
+    setMappingName(event.target.value);
+    setDuplicateNameError('');
+  };
+
+  /**
+   * Event handler for handling changes in the database selection.
+   *
+   * @param {React.ChangeEvent&lt;{ value: unknown }>} event - The change event object.
+   */
+  const handleDatabaseChange = (event) => {
+    setSelectedDatabase(event.target.value);
+  };
+
+  /**
+   * Event handler for handling changes in the SparQL code input.
+   *
+   * @param {React.ChangeEvent&lt;HTMLTextAreaElement>} event - The change event object.
+   */
+  const handleSparqlCodeChange = (event) => {
+    setSparqlCode(event.target.value);
+  };
+
+  /**
+   * Event handler for handling form submission.
+   */
+  const handleSubmit = () => {
+    checkDuplicateMappingName({ name: mappingName })
+      .then((data) => {
+        const { duplicate } = data;
+        setDuplicateNameError(duplicate ? 'Mapping name already exists' : '');
+      })
+      .catch((err) => {
+        console.error('Error checking duplicate name:', err);
+        setDuplicateNameError('Error checking duplicate name');
+      });
+
+    if (!duplicateNameError) {
+      const payload = {
+        selectedDatabase,
+        mappingName,
+        sparqlCode,
+      };
+
+      createCustomMapping(payload)
+        .then(() => {
+          setSelectedDatabase('');
+          setMappingName('');
+          setSparqlCode('');
+          alert('Successfully created mapping');
+        })
+        .catch((err) => {
+          console.error('Error creating mapping:', err);
+          alert('Fail to create mapping');
+        });
+    }
+  };
+
+  /**
+   * JSX structure of the component.
+   *
+   * @returns {JSX.Element} JSX.Element
+   */
+  return (
+    &lt;Container>
+      &lt;TextField
+        label="Mapping Name"
+        variant="outlined"
+        fullWidth
+        value={mappingName}
+        onChange={handleMappingNameChange}
+        style={{ marginBottom: 16 }}
+        error={!!duplicateNameError}
+        helperText={duplicateNameError}
+      />
+
+      &lt;FormControl variant="outlined" fullWidth style={{ marginBottom: 16 }}>
+        &lt;InputLabel id="database-label">Database&lt;/InputLabel>
+        &lt;Select value={selectedDatabase} onChange={handleDatabaseChange} fullWidth>
+          {datasets.map((dataset) => (
+            &lt;MenuItem key={dataset} value={dataset}>
+              {dataset}
+            &lt;/MenuItem>
+          ))}
+        &lt;/Select>
+      &lt;/FormControl>
+
+      &lt;TextareaAutosize
+        minRows={8}
+        placeholder="Enter SparQL code here..."
+        style={{ width: '100%', marginBottom: 16 }}
+        value={sparqlCode}
+        onChange={handleSparqlCodeChange}
+      />
+
+      &lt;Button
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit}
+        disabled={selectedDatabase === '' || mappingName === '' || sparqlCode === '' || !!duplicateNameError}
+      >
+        Submit
+      &lt;/Button>
+    &lt;/Container>
+  );
+}
+
+export default CustomMapping;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

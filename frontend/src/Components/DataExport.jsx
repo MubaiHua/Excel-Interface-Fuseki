@@ -9,6 +9,10 @@ import {
 } from '../Utils/FusekiAPI';
 import FilterSelectionTable from './FilterSelectionTable';
 
+/**
+ * Component for exporting data to a CSV file.
+ * @returns {JSX.Element} The JSX element representing the DataExport component.
+ */
 function DataExport() {
   const [database, setDatabase] = useState('');
   const [mapping, setMapping] = useState('');
@@ -19,8 +23,11 @@ function DataExport() {
   const [allPredicates, setAllPredicates] = useState([]);
   const [allFilters, setAllFilters] = useState({});
   const [direction, setDirection] = useState('');
-  const [isCustom, setIsCostom] = useState(false);
+  const [isCustom, setIsCustom] = useState(false);
 
+  /**
+   * Fetches all databases and sets the state.
+   */
   useEffect(() => {
     getAllDatabase()
       .then((data) => {
@@ -30,6 +37,9 @@ function DataExport() {
       });
   }, []);
 
+  /**
+   * Fetches mappings based on the selected database and sets the state.
+   */
   useEffect(() => {
     if (database !== '') {
       getAllMappings({ databaseID: database })
@@ -41,12 +51,14 @@ function DataExport() {
     }
   }, [database]);
 
+  /**
+   * Fetches predicates and checks if the mapping is custom.
+   */
   useEffect(() => {
     if (mapping !== '') {
       isCustomMapping({ mappingID: mapping })
         .then((data) => {
-          console.log(data);
-          setIsCostom(data.is_custom_mapping);
+          setIsCustom(data.is_custom_mapping);
         }).catch(() => {
           alert('Fail to get mappings');
         });
@@ -59,14 +71,26 @@ function DataExport() {
     }
   }, [mapping]);
 
+  /**
+   * Handles the change event for selecting a database.
+   * @param {object} event - The event object.
+   */
   const handleDatabaseChange = (event) => {
     setDatabase(event.target.value);
   };
 
+  /**
+   * Handles the change event for selecting a mapping.
+   * @param {object} event - The event object.
+   */
   const handleMappingChange = (event) => {
     setMapping(event.target.value);
   };
 
+  /**
+   * Handles the change event for updating filters.
+   * @param {array} data - The updated filter data.
+   */
   const handleFilterChange = (data) => {
     if (data) {
       const newData = {};
@@ -77,6 +101,9 @@ function DataExport() {
     }
   };
 
+  /**
+   * Handles the export button click event.
+   */
   const handleExport = async () => {
     let dbName = '';
     for (let i = 0; i < allDatabase.length; i++) {

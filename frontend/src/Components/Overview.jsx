@@ -6,13 +6,20 @@ import {
   getFusekiDatasets, deleteDatabase,
 } from '../Utils/FusekiAPI';
 
+/**
+ * React component for displaying an overview of databases.
+ * @component
+ * @returns {JSX.Element} Overview component.
+ */
 function Overview() {
   const [databaseList, setDatabaseList] = useState([]);
 
+  /**
+   * Fetches Fuseki datasets on component mount.
+   */
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
-        // console.log('API Response:', response);
         setDatabaseList(response);
       })
       .catch((err) => {
@@ -21,37 +28,31 @@ function Overview() {
       });
   }, []);
 
+  /**
+   * Handles the delete action for a database.
+   * @param {string} databaseName - The name of the database to delete.
+   */
   const handleDelete = (databaseName) => {
     deleteDatabase({ databaseName })
       .then(() => { alert('Delete successful'); })
       .catch(() => { alert('Fail to delete'); });
   };
 
+  /**
+   * Handles the export action for a database.
+   * @param {string} databaseName - The name of the database to export.
+   */
   const handleExport = (databaseName) => {
     const APIEndpoint = String(process.env.REACT_APP_ENDPOINT).replace(':8000', ':3030');
-    // Replace the port number in the APIEndpoint string
-    // Construct the new URL
     const externalLink = `${APIEndpoint}/${databaseName}/data`;
 
-    // Open a new window
     const newWindow = window.open();
-
-    // Create a temporary anchor element in the new window
     const anchor = newWindow.document.createElement('a');
-
-    // Set the anchor's href attribute to the external link
     anchor.href = externalLink;
-
-    // Specify that the anchor should trigger a download
     anchor.download = `${databaseName}.ttl`;
 
-    // Append the anchor to the new window's document
     newWindow.document.body.appendChild(anchor);
-
-    // Programmatically trigger a click event on the anchor in the new window
     anchor.click();
-
-    // Remove the anchor from the new window's document
     newWindow.document.body.removeChild(anchor);
   };
 
@@ -86,7 +87,6 @@ function Overview() {
         </Table>
       </TableContainer>
     </>
-
   );
 }
 

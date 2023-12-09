@@ -6,11 +6,19 @@ import {
 import CircleIcon from '@mui/icons-material/Circle';
 import { getAllDatabase, getAllMappings } from '../Utils/FusekiAPI';
 
+/**
+ * React component for displaying a list of mappings based on selected databases.
+ * @component
+ * @returns {JSX.Element} MappingList component.
+ */
 function MappingList() {
   const [database, setDatabase] = useState('');
   const [allDatabase, setAllDatabase] = useState([]);
   const [allMappings, setAllMappings] = useState([]);
 
+  /**
+   * Fetches all databases on component mount.
+   */
   useEffect(() => {
     getAllDatabase()
       .then((data) => {
@@ -20,6 +28,10 @@ function MappingList() {
       });
   }, []);
 
+  /**
+   * Fetches all mappings when the selected database changes.
+   * @param {Object} event - The event object from the database select change.
+   */
   useEffect(() => {
     if (database !== '') {
       getAllMappings({ databaseID: database })
@@ -31,6 +43,10 @@ function MappingList() {
     }
   }, [database]);
 
+  /**
+   * Handles the change of the selected database.
+   * @param {Object} event - The event object from the database select change.
+   */
   const handleDatabaseChange = (event) => {
     setDatabase(event.target.value);
   };

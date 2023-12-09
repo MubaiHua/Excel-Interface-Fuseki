@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Authorization/Signup.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Authorization/Signup.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* eslint-disable no-alert */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { useState } from 'react';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import FormHelperText from '@mui/material/FormHelperText';
+import InputLabel from '@mui/material/InputLabel';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
+import AuthAPI from '../Utils/AuthAPI';
+
+const defaultTheme = createTheme();
+
+/**
+ * Copyright component that displays copyright information.
+ * @param {object} props - Component props.
+ * @returns {JSX.Element} The JSX element representing the Copyright component.
+ */
+function Copyright(props) {
+  const currentURL = window.location.href;
+  const homePageURL = currentURL.split('/').slice(0, 3).join('/');
+  return (
+    &lt;Typography variant="body2" color="text.secondary" align="center" {...props}>
+      {'Copyright © '}
+      &lt;Link color="inherit" href={homePageURL}>
+        Excel Interface Fuseki
+      &lt;/Link>
+      {' '}
+      {new Date().getFullYear()}
+      .
+    &lt;/Typography>
+  );
+}
+
+/**
+ * SignUp component handles the user registration process.
+ * @returns {JSX.Element} The JSX element representing the SignUp component.
+ */
+function SignUp() {
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('');
+  const [passwordMatchError, setPasswordMatchError] = useState('');
+  const navigate = useNavigate();
+
+  const currentURL = window.location.href;
+  const loginPageURL = currentURL.replace(/\/signup$/, '/login');
+
+  /**
+   * Handles the password input change and checks if the passwords match.
+   * @param {React.ChangeEvent&lt;HTMLInputElement>} e - The input change event.
+   */
+  const handlePasswordChange = (e) => {
+    const enteredPassword = e.target.value;
+    const isMatch = enteredPassword === confirmPassword;
+    setPasswordMatchError(isMatch ? '' : 'Passwords do not match.');
+    setPassword(enteredPassword);
+  };
+
+  /**
+   * Handles the confirm password input change and checks if the passwords match.
+   * @param {React.ChangeEvent&lt;HTMLInputElement>} e - The input change event.
+   */
+  const handleConfirmPasswordChange = (e) => {
+    const enteredConfirmPassword = e.target.value;
+    const isMatch = enteredConfirmPassword === password;
+    setPasswordMatchError(isMatch ? '' : 'Passwords do not match.');
+    setConfirmPassword(enteredConfirmPassword);
+  };
+
+  /**
+   * Handles the form submission for user registration.
+   * Validates input fields, checks for password match, and triggers the signup API call.
+   * Displays appropriate alerts based on the response or error.
+   * @param {React.FormEvent&lt;HTMLFormElement>} e - The form submission event.
+   */
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Check for non-empty email, username, and password
+    if (!email.trim() || !username.trim() || !password.trim()) {
+      alert('The field cannot be empty.');
+      return;
+    }
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+
+    // Check if a role is selected
+    if (!role) {
+      alert('Please select a role.');
+    }
+
+    const payload = {
+      email,
+      name: username,
+      password,
+      re_password: confirmPassword,
+      is_admin: role === 'mappingAdmin',
+    };
+
+    AuthAPI.signup(payload)
+      .then(() => {
+        alert('Please check your email to activate your account');
+        navigate('/login');
+      })
+      .catch((err) => {
+        const { response } = err;
+        const { data } = response;
+        let errMessage = '';
+        Object.keys(data).forEach((key) => {
+          errMessage += data[key][0];
+          errMessage += '\n';
+        });
+        alert(errMessage);
+      });
+  };
+
+  return (
+    &lt;ThemeProvider theme={defaultTheme}>
+      &lt;Container component="main" maxWidth="xs">
+        &lt;CssBaseline />
+        &lt;Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          &lt;Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            &lt;LockOutlinedIcon />
+          &lt;/Avatar>
+          &lt;Typography component="h1" variant="h5">
+            Sign up
+          &lt;/Typography>
+          &lt;Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            &lt;Grid container spacing={2}>
+              &lt;Grid item xs={12}>
+                &lt;TextField
+                  required
+                  fullWidth
+                  id="username"
+                  label="User Name"
+                  name="username"
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;TextField
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  name="email"
+                  autoComplete="email"
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;TextField
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="new-password"
+                  onChange={handlePasswordChange}
+                  error={!!passwordMatchError}
+                  helperText={passwordMatchError}
+                />
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;TextField
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type="password"
+                  id="confirmPassword"
+                  autoComplete="new-password"
+                  onChange={handleConfirmPasswordChange}
+                  error={!!passwordMatchError}
+                  helperText={passwordMatchError}
+                />
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;FormControl fullWidth>
+                  &lt;InputLabel id="select-role-label">Select Role&lt;/InputLabel>
+                  &lt;Select
+                    labelId="select-role-label"
+                    id="select-role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    label="Select Role"
+                  >
+                    &lt;MenuItem value="" disabled>
+                      Select role
+                    &lt;/MenuItem>
+                    &lt;MenuItem value="mappingAdmin">Mapping Administrator&lt;/MenuItem>
+                    &lt;MenuItem value="dataAnalyst">Data Analyst&lt;/MenuItem>
+                  &lt;/Select>
+                  &lt;FormHelperText>Please select your role&lt;/FormHelperText>
+                &lt;/FormControl>
+              &lt;/Grid>
+            &lt;/Grid>
+            &lt;Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onSubmit={handleSubmit}
+            >
+              Sign Up
+            &lt;/Button>
+            &lt;Grid container justifyContent="flex-end">
+              &lt;Grid item>
+                &lt;Link href={loginPageURL} variant="body2">
+                  Already have an account? Sign in
+                &lt;/Link>
+              &lt;/Grid>
+            &lt;/Grid>
+          &lt;/Box>
+        &lt;/Box>
+        &lt;Copyright sx={{ mt: 5 }} />
+      &lt;/Container>
+    &lt;/ThemeProvider>
+  );
+}
+
+export default SignUp;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

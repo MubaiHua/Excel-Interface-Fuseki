@@ -8,16 +8,26 @@ import Box from '@mui/material/Box';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import AuthAPI from '../Utils/AuthAPI';
 
-const theme = createTheme();
-
+/**
+ * ResetPassword component handles the process of resetting a user's password.
+ * @returns {JSX.Element} The JSX element representing the ResetPassword component.
+ */
 function ResetPassword() {
   const [email, setEmail] = useState('');
   const [resetRequested, setResetRequested] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  /**
+   * Handles the reset password action.
+   * Validates the email, triggers the resetPassword API call, and updates the state accordingly.
+   */
   const handleResetPassword = () => {
-    // Validate the email format (you may want to add more robust email validation)
+    setError(null);
+
+    // Validate the email format
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      // Handle invalid email
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -25,20 +35,24 @@ function ResetPassword() {
       email,
     };
 
+    setLoading(true);
+
     // Call the resetPassword API
     AuthAPI.resetPassword(payload)
       .then(() => {
         setResetRequested(true);
       })
-      .catch((error) => {
-        // Handle API error (display an error message, etc.)
-        console.error('Error resetting password:', error);
-        alert('Error resetting password:', error);
+      .catch((err) => {
+        console.error('Error resetting password:', err);
+        setError('Failed to reset password. Please try again.');
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={createTheme()}>
       <Container component="main" maxWidth="xs">
         <Box
           sx={{
@@ -67,6 +81,8 @@ function ResetPassword() {
                 autoComplete="email"
                 autoFocus
                 onChange={(e) => setEmail(e.target.value)}
+                error={Boolean(error)}
+                helperText={error}
               />
               <Button
                 fullWidth
@@ -74,8 +90,9 @@ function ResetPassword() {
                 color="primary"
                 onClick={handleResetPassword}
                 sx={{ mt: 3 }}
+                disabled={loading}
               >
-                Reset Password
+                {loading ? 'Loading...' : 'Reset Password'}
               </Button>
             </>
           )}

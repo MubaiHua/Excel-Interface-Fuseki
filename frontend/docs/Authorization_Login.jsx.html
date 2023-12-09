@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Authorization/Login.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Authorization/Login.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* eslint-disable react/jsx-curly-brace-presence */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { useState, useContext, useEffect } from 'react';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
+import AuthAPI from '../Utils/AuthAPI';
+import CommonAPI from '../Utils/CommenAPI';
+import {
+  setLocalStorage, JWT_TOKEN, JWT_REFRESH_TOKEN, getJWTToken,
+} from '../Utils/LocalStorageAccessor';
+import { MainContext } from '../MainContext';
+
+/**
+ * React component for displaying copyright information.
+ * @component
+ * @param {Object} props - React props for the Copyright component.
+ * @returns {JSX.Element} Copyright component.
+ */
+function Copyright(props) {
+  /**
+   * Generates the current URL and the home page URL based on the current URL.
+   * @returns {string} Home page URL.
+   */
+  const getHomePageURL = () => {
+    const currentURL = window.location.href;
+    const homePageURL = currentURL.split('/').slice(0, 3).join('/');
+    return homePageURL;
+  };
+
+  return (
+    &lt;Typography variant="body2" color="text.secondary" align="center" {...props}>
+      {'Copyright © '}
+      &lt;Link color="inherit" href={getHomePageURL()}>
+        Excel Interface Fuseki
+      &lt;/Link>
+      {' '}
+      {new Date().getFullYear()}
+      {'.'}
+    &lt;/Typography>
+  );
+}
+
+// Create a MUI theme
+const defaultTheme = createTheme();
+
+/**
+ * React component for the login page.
+ * @component
+ * @returns {JSX.Element} Login component.
+ */
+function Login() {
+  const [loginEmail, setLoginEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const currentURL = window.location.href;
+  const signupPageURL = currentURL.replace(/\/login$/, '/signup');
+  const {
+    setUsername,
+    setHasLogin,
+    setUserEmail,
+    setUserID,
+    setIsUserAdmin,
+  } = useContext(MainContext);
+
+  useEffect(() => {
+    if (getJWTToken() !== 'djwt') {
+      const payload = {
+        token: getJWTToken(),
+      };
+      AuthAPI.verifyCurrentUser(payload).then((response) => {
+        if (response) {
+          CommonAPI.getCurrentUser()
+            .then((res) => {
+              const {
+                email, id, is_admin, name,
+              } = res;
+              setUsername(name);
+              setHasLogin(true);
+              setUserEmail(email);
+              setUserID(id);
+              setIsUserAdmin(is_admin);
+              return id;
+            })
+            .then((id) => {
+              navigate(`/home/${id}`);
+            });
+        }
+      }).catch(() => {
+        console.log('here');
+        console.log('Need Login');
+      });
+    }
+  }, []); // Empty dependency array means this effect runs only once
+
+  /**
+   * Handles the form submission, sends a request to the server for user authentication.
+   * Updates the state and redirects to the home page on successful login.
+   * Displays an alert on login failure.
+   * @param {React.SyntheticEvent} e - The form submission event.
+   */
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = {
+      email: loginEmail,
+      password,
+    };
+
+    AuthAPI.login(payload)
+      .then((res) => {
+        const { access, refresh } = res;
+        setLocalStorage(JWT_TOKEN, access);
+        setLocalStorage(JWT_REFRESH_TOKEN, refresh);
+      })
+      .then(() => {
+        CommonAPI.getCurrentUser()
+          .then((res) => {
+            const {
+              email, id, is_admin, name,
+            } = res;
+            setUsername(name);
+            setHasLogin(true);
+            setUserEmail(email);
+            setUserID(id);
+            setIsUserAdmin(is_admin);
+            return id;
+          })
+          .then((id) => {
+            navigate(`/home/${id}`);
+          })
+          .catch(() => {
+            alert('fail to get user information');
+          });
+      })
+      .catch(() => {
+        alert('Username or Password is incorrect');
+      });
+  };
+
+  return (
+    &lt;ThemeProvider theme={defaultTheme}>
+      &lt;Container component="main" maxWidth="xs">
+        &lt;CssBaseline />
+        &lt;Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          &lt;Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            &lt;LockOutlinedIcon />
+          &lt;/Avatar>
+          &lt;Typography component="h1" variant="h5">
+            Sign in
+          &lt;/Typography>
+          &lt;Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            &lt;TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              onChange={(e) => setLoginEmail(e.target.value)}
+            />
+            &lt;TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            &lt;Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={!loginEmail.trim() || !password.trim()}
+            >
+              Sign In
+            &lt;/Button>
+            &lt;Grid container>
+              &lt;Grid item xs>
+                &lt;Link href="/reset_password" variant="body2">
+                  Forgot password?
+                &lt;/Link>
+              &lt;/Grid>
+              &lt;Grid item>
+                &lt;Link href={signupPageURL} variant="body2">
+                  {"Don't have an account? Sign Up"}
+                &lt;/Link>
+              &lt;/Grid>
+            &lt;/Grid>
+          &lt;/Box>
+        &lt;/Box>
+        &lt;Copyright sx={{ mt: 8, mb: 4 }} />
+      &lt;/Container>
+    &lt;/ThemeProvider>
+  );
+}
+
+export default Login;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

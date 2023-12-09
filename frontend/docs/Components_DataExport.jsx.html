@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/DataExport.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/DataExport.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* eslint-disable max-len */
+/* eslint-disable no-nested-ternary */
+import React, { useState, useEffect } from 'react';
+import {
+  Typography, Button, Container, Grid, MenuItem, Paper, Select, Alert, TextField,
+} from '@mui/material';
+import {
+  getAllDatabase, getAllMappings, getExportExcel, getPredicates, isCustomMapping, customExport,
+} from '../Utils/FusekiAPI';
+import FilterSelectionTable from './FilterSelectionTable';
+
+/**
+ * Component for exporting data to a CSV file.
+ * @returns {JSX.Element} The JSX element representing the DataExport component.
+ */
+function DataExport() {
+  const [database, setDatabase] = useState('');
+  const [mapping, setMapping] = useState('');
+  const [allDatabase, setAllDatabase] = useState([]);
+  const [allMappings, setAllMappings] = useState([]);
+  const [orderBy, setOrderBy] = useState('');
+  const [limit, setLimit] = useState('');
+  const [allPredicates, setAllPredicates] = useState([]);
+  const [allFilters, setAllFilters] = useState({});
+  const [direction, setDirection] = useState('');
+  const [isCustom, setIsCustom] = useState(false);
+
+  /**
+   * Fetches all databases and sets the state.
+   */
+  useEffect(() => {
+    getAllDatabase()
+      .then((data) => {
+        setAllDatabase(data);
+      }).catch(() => {
+        alert('Fail to get database');
+      });
+  }, []);
+
+  /**
+   * Fetches mappings based on the selected database and sets the state.
+   */
+  useEffect(() => {
+    if (database !== '') {
+      getAllMappings({ databaseID: database })
+        .then((data) => {
+          setAllMappings(data);
+        }).catch(() => {
+          alert('Fail to get mappings');
+        });
+    }
+  }, [database]);
+
+  /**
+   * Fetches predicates and checks if the mapping is custom.
+   */
+  useEffect(() => {
+    if (mapping !== '') {
+      isCustomMapping({ mappingID: mapping })
+        .then((data) => {
+          setIsCustom(data.is_custom_mapping);
+        }).catch(() => {
+          alert('Fail to get mappings');
+        });
+      getPredicates({ mappingID: mapping })
+        .then((data) => {
+          setAllPredicates(data);
+        }).catch(() => {
+          alert('Fail to get mappings');
+        });
+    }
+  }, [mapping]);
+
+  /**
+   * Handles the change event for selecting a database.
+   * @param {object} event - The event object.
+   */
+  const handleDatabaseChange = (event) => {
+    setDatabase(event.target.value);
+  };
+
+  /**
+   * Handles the change event for selecting a mapping.
+   * @param {object} event - The event object.
+   */
+  const handleMappingChange = (event) => {
+    setMapping(event.target.value);
+  };
+
+  /**
+   * Handles the change event for updating filters.
+   * @param {array} data - The updated filter data.
+   */
+  const handleFilterChange = (data) => {
+    if (data) {
+      const newData = {};
+      data.forEach((element) => {
+        newData[element.predicate] = element.text;
+      });
+      setAllFilters(newData);
+    }
+  };
+
+  /**
+   * Handles the export button click event.
+   */
+  const handleExport = async () => {
+    let dbName = '';
+    for (let i = 0; i &lt; allDatabase.length; i++) {
+      if (allDatabase[i].id === database) {
+        dbName = allDatabase[i].name;
+        break;
+      }
+    }
+    if (dbName === '') {
+      alert('Fail to export');
+      return;
+    }
+    const payload = {
+      dbName, mapping_id: mapping,
+    };
+    if (isCustom) {
+      customExport(payload)
+        .then((response) => {
+          const filename = response.headers['content-type'];
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          // Create a download link and trigger a click event
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename; // Specify the file name
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // Revoke the Object URL to free up resources
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+          alert('Fail to export');
+        });
+    } else {
+      if (orderBy !== '' &amp;&amp; direction !== '') {
+        payload.order_by_var = orderBy;
+        payload.order_by = direction;
+      }
+      if (limit !== '') {
+        payload.limit = limit;
+      }
+      if (Object.keys(allFilters).length !== 0) {
+        payload.filter_equals = JSON.stringify(allFilters);
+      }
+      getExportExcel(payload)
+        .then((response) => {
+          const filename = response.headers['content-type'];
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          // Create a download link and trigger a click event
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename; // Specify the file name
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // Revoke the Object URL to free up resources
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+          alert('Fail to export');
+        });
+    }
+  };
+
+  return (
+    &lt;Container component="main" maxWidth="md">
+      &lt;Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
+        {!(database !== '' &amp;&amp; allDatabase.length === 0) || (mapping !== '' &amp;&amp; allMappings.length === 0)
+          ? (
+            &lt;Typography variant="h5" align="center" gutterBottom>
+              CSV File Downloader
+            &lt;/Typography>
+          )
+          : allDatabase.length === 0 ? (
+            &lt;Typography variant="h5" align="center" gutterBottom>
+              No database available
+            &lt;/Typography>
+          ) : (
+            &lt;Typography variant="h5" align="center" gutterBottom>
+              No mapping in this database available
+            &lt;/Typography>
+          )}
+
+        {!(database !== '' &amp;&amp; allMappings.length === 0) &amp;&amp; (
+        &lt;>
+          &lt;Grid container spacing={2}>
+            &lt;Grid item xs={12}>
+              &lt;Select
+                value={database}
+                onChange={handleDatabaseChange}
+                fullWidth
+                displayEmpty
+                inputProps={{ 'aria-label': 'Without label' }}
+              >
+                &lt;MenuItem value="" disabled>
+                  Select Database
+                &lt;/MenuItem>
+                {allDatabase.map((db) => (&lt;MenuItem value={db.id}>{db.name}&lt;/MenuItem>))}
+              &lt;/Select>
+            &lt;/Grid>
+            &lt;Grid item xs={12}>
+              &lt;Select
+                value={mapping}
+                onChange={handleMappingChange}
+                fullWidth
+                displayEmpty
+                inputProps={{ 'aria-label': 'Without label' }}
+              >
+                &lt;MenuItem value="" disabled>
+                  Select Mapping
+                &lt;/MenuItem>
+                {allMappings.map((mp) => (&lt;MenuItem value={mp.id}>{mp.name}&lt;/MenuItem>))}
+              &lt;/Select>
+            &lt;/Grid>
+            {(mapping !== '' &amp;&amp; database !== '' &amp;&amp; !isCustom) &amp;&amp; (
+            &lt;>
+              &lt;Grid item xs={12}>
+                {' '}
+                &lt;Typography variant="subtitle1" align="left" color="textSecondary">
+                  Optional Fields: Customize your export by specifying OrderBy and Limit.
+                &lt;/Typography>
+              &lt;/Grid>
+
+              &lt;Grid item xs={12}>
+                &lt;Select
+                  value={orderBy}
+                  onChange={(event) => setOrderBy(event.target.value)}
+                  fullWidth
+                  displayEmpty
+                  inputProps={{ 'aria-label': 'Without label' }}
+                >
+                  &lt;MenuItem value="" disabled>
+                    Order By
+                  &lt;/MenuItem>
+                  {/* Add options based on your specific ordering requirements */}
+                  {allPredicates.map((pr) => (&lt;MenuItem value={pr}>{pr}&lt;/MenuItem>))}
+                &lt;/Select>
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;Select
+                  value={direction}
+                  onChange={(event) => setDirection(event.target.value)}
+                  fullWidth
+                  displayEmpty
+                  inputProps={{ 'aria-label': 'Without label' }}
+                >
+                  &lt;MenuItem value="desc">
+                    desc
+                  &lt;/MenuItem>
+                  &lt;MenuItem value="asc">
+                    asc
+                  &lt;/MenuItem>
+                &lt;/Select>
+              &lt;/Grid>
+
+              &lt;Grid item xs={12}>
+                &lt;TextField
+                  label="Limit"
+                  type="number"
+                  fullWidth
+                  value={limit}
+                  onChange={(event) => setLimit(event.target.value)}
+                />
+              &lt;/Grid>
+              &lt;Grid item xs={12}>
+                &lt;FilterSelectionTable allPredicates={allPredicates} onDataUpdate={handleFilterChange} />
+              &lt;/Grid>
+            &lt;/>
+            )}
+          &lt;/Grid>
+
+          &lt;Alert severity="warning" style={{ marginTop: '20px' }}>The name of the csv file exported is the Export ID, please remember it or DO NOT change it&lt;/Alert>
+          &lt;Button variant="contained" color="primary" onClick={handleExport} fullWidth style={{ padding: '20px', marginTop: '20px', height: '15px' }}>
+            Export
+          &lt;/Button>
+        &lt;/>
+        )}
+      &lt;/Paper>
+    &lt;/Container>
+  );
+}
+
+export default DataExport;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

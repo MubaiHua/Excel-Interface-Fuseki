@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/MappingList.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/MappingList.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* eslint-disable no-nested-ternary */
+import React, { useState, useEffect } from 'react';
+import {
+  Typography, Container, Grid, MenuItem, Paper, Select, List, ListItem, ListItemText, ListItemIcon,
+} from '@mui/material';
+import CircleIcon from '@mui/icons-material/Circle';
+import { getAllDatabase, getAllMappings } from '../Utils/FusekiAPI';
+
+/**
+ * React component for displaying a list of mappings based on selected databases.
+ * @component
+ * @returns {JSX.Element} MappingList component.
+ */
+function MappingList() {
+  const [database, setDatabase] = useState('');
+  const [allDatabase, setAllDatabase] = useState([]);
+  const [allMappings, setAllMappings] = useState([]);
+
+  /**
+   * Fetches all databases on component mount.
+   */
+  useEffect(() => {
+    getAllDatabase()
+      .then((data) => {
+        setAllDatabase(data);
+      }).catch(() => {
+        alert('Fail to get database');
+      });
+  }, []);
+
+  /**
+   * Fetches all mappings when the selected database changes.
+   * @param {Object} event - The event object from the database select change.
+   */
+  useEffect(() => {
+    if (database !== '') {
+      getAllMappings({ databaseID: database })
+        .then((data) => {
+          setAllMappings(data);
+        }).catch(() => {
+          alert('Fail to get mappings');
+        });
+    }
+  }, [database]);
+
+  /**
+   * Handles the change of the selected database.
+   * @param {Object} event - The event object from the database select change.
+   */
+  const handleDatabaseChange = (event) => {
+    setDatabase(event.target.value);
+  };
+
+  return (
+    &lt;Container component="main" maxWidth="md">
+      &lt;Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
+        &lt;Typography variant="h5" align="center" gutterBottom>
+          Find Out Your Mapping List
+        &lt;/Typography>
+
+        {/* Select a database */}
+        &lt;Grid container spacing={2}>
+          &lt;Grid item xs={12}>
+            &lt;Select
+              value={database}
+              onChange={handleDatabaseChange}
+              fullWidth
+              displayEmpty
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              &lt;MenuItem value="" disabled>
+                Please select a database
+              &lt;/MenuItem>
+              {allDatabase.map((db) => (
+                &lt;MenuItem key={db.id} value={db.id}>{db.name}&lt;/MenuItem>
+              ))}
+            &lt;/Select>
+          &lt;/Grid>
+        &lt;/Grid>
+
+        {/* Mapping List */}
+        {database &amp;&amp; (
+        &lt;Paper elevation={2} style={{ padding: '20px', marginTop: '20px' }}>
+          &lt;Typography variant="h6" align="left" gutterBottom>
+            Available Mappings
+          &lt;/Typography>
+          &lt;List>
+            {allMappings.map((mp) => (
+              &lt;ListItem key={mp.id}>
+                &lt;ListItemIcon>
+                  &lt;CircleIcon />
+                  {' '}
+                  {/* Icon added here */}
+                &lt;/ListItemIcon>
+                &lt;ListItemText primary={mp.name} />
+              &lt;/ListItem>
+            ))}
+          &lt;/List>
+        &lt;/Paper>
+        )}
+
+      &lt;/Paper>
+    &lt;/Container>
+  );
+}
+
+export default MappingList;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

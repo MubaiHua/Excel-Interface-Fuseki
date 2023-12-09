@@ -8,6 +8,10 @@ import {
   getAllDatabase, getAllMappings, getAllExports, postImportExcel,
 } from '../Utils/FusekiAPI';
 
+/**
+ * Component for importing data from a CSV file.
+ * @returns {JSX.Element} The JSX element representing the DataImport component.
+ */
 function DataImport() {
   const [file, setFile] = useState(null);
   const [database, setDatabase] = useState('');
@@ -18,6 +22,9 @@ function DataImport() {
   const [allMappings, setAllMappings] = useState([]);
   const [allExportValue, setAllExportValue] = useState([]);
 
+  /**
+   * Fetches all databases and sets the state.
+   */
   useEffect(() => {
     getAllDatabase()
       .then((data) => {
@@ -27,6 +34,9 @@ function DataImport() {
       });
   }, []);
 
+  /**
+   * Fetches mappings based on the selected database and sets the state.
+   */
   useEffect(() => {
     if (database !== '') {
       getAllMappings({ databaseID: database })
@@ -38,6 +48,9 @@ function DataImport() {
     }
   }, [database]);
 
+  /**
+   * Fetches export values based on the selected mapping and sets the state.
+   */
   useEffect(() => {
     if (mapping !== '') {
       getAllExports({ mappingID: mapping })
@@ -49,6 +62,10 @@ function DataImport() {
     }
   }, [mapping]);
 
+  /**
+   * Handles the file drop event.
+   * @param {File[]} acceptedFiles - The array of accepted files.
+   */
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
       const reader = new FileReader();
@@ -61,18 +78,34 @@ function DataImport() {
       setFile(acceptedFiles[0]);
     }
   }, []);
+
+  /**
+   * Handles the change event for selecting a database.
+   * @param {object} event - The event object.
+   */
   const handleDatabaseChange = (event) => {
     setDatabase(event.target.value);
   };
 
+  /**
+   * Handles the change event for selecting a mapping.
+   * @param {object} event - The event object.
+   */
   const handleMappingChange = (event) => {
     setMapping(event.target.value);
   };
 
+  /**
+   * Handles the change event for selecting an export value.
+   * @param {object} event - The event object.
+   */
   const handleExportChange = (event) => {
     setExportValue(event.target.value);
   };
 
+  /**
+   * Handles the upload button click event.
+   */
   const handleUpload = async () => {
     let dbName = '';
     for (let i = 0; i < allDatabase.length; i++) {

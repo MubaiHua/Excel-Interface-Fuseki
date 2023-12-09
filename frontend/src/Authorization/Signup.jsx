@@ -22,6 +22,11 @@ import AuthAPI from '../Utils/AuthAPI';
 
 const defaultTheme = createTheme();
 
+/**
+ * Copyright component that displays copyright information.
+ * @param {object} props - Component props.
+ * @returns {JSX.Element} The JSX element representing the Copyright component.
+ */
 function Copyright(props) {
   const currentURL = window.location.href;
   const homePageURL = currentURL.split('/').slice(0, 3).join('/');
@@ -38,7 +43,10 @@ function Copyright(props) {
   );
 }
 
-// SignUp Component
+/**
+ * SignUp component handles the user registration process.
+ * @returns {JSX.Element} The JSX element representing the SignUp component.
+ */
 function SignUp() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -51,6 +59,10 @@ function SignUp() {
   const currentURL = window.location.href;
   const loginPageURL = currentURL.replace(/\/signup$/, '/login');
 
+  /**
+   * Handles the password input change and checks if the passwords match.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handlePasswordChange = (e) => {
     const enteredPassword = e.target.value;
     const isMatch = enteredPassword === confirmPassword;
@@ -58,6 +70,10 @@ function SignUp() {
     setPassword(enteredPassword);
   };
 
+  /**
+   * Handles the confirm password input change and checks if the passwords match.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleConfirmPasswordChange = (e) => {
     const enteredConfirmPassword = e.target.value;
     const isMatch = enteredConfirmPassword === password;
@@ -65,6 +81,12 @@ function SignUp() {
     setConfirmPassword(enteredConfirmPassword);
   };
 
+  /**
+   * Handles the form submission for user registration.
+   * Validates input fields, checks for password match, and triggers the signup API call.
+   * Displays appropriate alerts based on the response or error.
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
 

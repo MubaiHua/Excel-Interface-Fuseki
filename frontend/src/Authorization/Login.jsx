@@ -20,16 +20,27 @@ import {
 } from '../Utils/LocalStorageAccessor';
 import { MainContext } from '../MainContext';
 
-const defaultTheme = createTheme();
-
+/**
+ * React component for displaying copyright information.
+ * @component
+ * @param {Object} props - React props for the Copyright component.
+ * @returns {JSX.Element} Copyright component.
+ */
 function Copyright(props) {
-  const currentURL = window.location.href;
-  const homePageURL = currentURL.split('/').slice(0, 3).join('/');
+  /**
+   * Generates the current URL and the home page URL based on the current URL.
+   * @returns {string} Home page URL.
+   */
+  const getHomePageURL = () => {
+    const currentURL = window.location.href;
+    const homePageURL = currentURL.split('/').slice(0, 3).join('/');
+    return homePageURL;
+  };
 
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
-      <Link color="inherit" href={homePageURL}>
+      <Link color="inherit" href={getHomePageURL()}>
         Excel Interface Fuseki
       </Link>
       {' '}
@@ -39,6 +50,14 @@ function Copyright(props) {
   );
 }
 
+// Create a MUI theme
+const defaultTheme = createTheme();
+
+/**
+ * React component for the login page.
+ * @component
+ * @returns {JSX.Element} Login component.
+ */
 function Login() {
   const [loginEmail, setLoginEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,6 +103,12 @@ function Login() {
     }
   }, []); // Empty dependency array means this effect runs only once
 
+  /**
+   * Handles the form submission, sends a request to the server for user authentication.
+   * Updates the state and redirects to the home page on successful login.
+   * Displays an alert on login failure.
+   * @param {React.SyntheticEvent} e - The form submission event.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = {

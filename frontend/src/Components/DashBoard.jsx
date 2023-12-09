@@ -31,6 +31,7 @@ import CustomMapping from './CreateCustomMapping';
 
 const drawerWidth = 240;
 
+// Styling the drawer
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
     '& .MuiDrawer-paper': {
@@ -57,12 +58,24 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
+/**
+ * Dashboard component for displaying user interface with navigation options.
+ * @param {Object} props - Component properties.
+ * @param {number} props.userID - User ID.
+ * @param {string} props.userName - User name.
+ * @param {boolean} props.isUserAdmin - Indicates whether the user is an admin.
+ * @returns {JSX.Element} React component.
+ */
 export default function Dashboard({ userID, userName, isUserAdmin }) {
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState('Overview');
+
+  /**
+   * Toggle the open/close state of the drawer.
+   * @returns {void}
+   */
   const toggleDrawer = () => {
     setOpen(!open);
   };

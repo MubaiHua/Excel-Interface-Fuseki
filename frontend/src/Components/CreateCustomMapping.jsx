@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React, { useState, useEffect } from 'react';
 import {
   Button, TextField, MenuItem, Container, TextareaAutosize, FormControl, InputLabel, Select,
@@ -7,67 +6,106 @@ import {
   checkDuplicateMappingName, getFusekiDatasets, createCustomMapping,
 } from '../Utils/FusekiAPI';
 
+/**
+ * React component for creating a custom mapping.
+ *
+ * @component
+ * @returns {JSX.Element} JSX.Element
+ */
 function CustomMapping() {
+  /**
+   * State variables for managing form inputs and errors
+   */
   const [mappingName, setMappingName] = useState('');
   const [selectedDatabase, setSelectedDatabase] = useState('');
   const [sparqlCode, setSparqlCode] = useState('');
-  const [dupliacateNameError, setDupliacateNameError] = useState('');
+  const [duplicateNameError, setDuplicateNameError] = useState('');
   const [datasets, setDatasets] = useState([]);
 
+  /**
+   * Effect hook to fetch datasets when the component mounts.
+   */
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
-        // console.log('API Response:', response);
         setDatasets(response);
       })
       .catch((err) => {
         console.error('Error fetching datasets:', err);
-        alert('Failed to load datasets');
+        setError('Failed to load datasets');
+      })
+      .finally(() => {
       });
   }, []);
 
-  useEffect(() => {
-    setDupliacateNameError('');
-  }, [mappingName]);
-
+  /**
+   * Event handler for handling changes in the mapping name input.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} event - The change event object.
+   */
   const handleMappingNameChange = (event) => {
     setMappingName(event.target.value);
+    setDuplicateNameError('');
   };
 
+  /**
+   * Event handler for handling changes in the database selection.
+   *
+   * @param {React.ChangeEvent<{ value: unknown }>} event - The change event object.
+   */
   const handleDatabaseChange = (event) => {
     setSelectedDatabase(event.target.value);
   };
 
+  /**
+   * Event handler for handling changes in the SparQL code input.
+   *
+   * @param {React.ChangeEvent<HTMLTextAreaElement>} event - The change event object.
+   */
   const handleSparqlCodeChange = (event) => {
     setSparqlCode(event.target.value);
   };
 
+  /**
+   * Event handler for handling form submission.
+   */
   const handleSubmit = () => {
     checkDuplicateMappingName({ name: mappingName })
       .then((data) => {
         const { duplicate } = data;
-        if (duplicate) {
-          setDupliacateNameError('Mapping name already exist');
-        } else {
-          setDupliacateNameError('');
-        }
+        setDuplicateNameError(duplicate ? 'Mapping name already exists' : '');
+      })
+      .catch((err) => {
+        console.error('Error checking duplicate name:', err);
+        setDuplicateNameError('Error checking duplicate name');
       });
-    if (dupliacateNameError === '') {
+
+    if (!duplicateNameError) {
       const payload = {
-        selectedDatabase, mappingName, sparqlCode,
+        selectedDatabase,
+        mappingName,
+        sparqlCode,
       };
+
       createCustomMapping(payload)
         .then(() => {
           setSelectedDatabase('');
           setMappingName('');
           setSparqlCode('');
           alert('Successfully created mapping');
-        }).catch(() => {
+        })
+        .catch((err) => {
+          console.error('Error creating mapping:', err);
           alert('Fail to create mapping');
         });
     }
   };
 
+  /**
+   * JSX structure of the component.
+   *
+   * @returns {JSX.Element} JSX.Element
+   */
   return (
     <Container>
       <TextField
@@ -77,8 +115,8 @@ function CustomMapping() {
         value={mappingName}
         onChange={handleMappingNameChange}
         style={{ marginBottom: 16 }}
-        error={!!dupliacateNameError}
-        helperText={dupliacateNameError}
+        error={!!duplicateNameError}
+        helperText={duplicateNameError}
       />
 
       <FormControl variant="outlined" fullWidth style={{ marginBottom: 16 }}>
@@ -100,7 +138,12 @@ function CustomMapping() {
         onChange={handleSparqlCodeChange}
       />
 
-      <Button variant="contained" color="primary" onClick={handleSubmit} disabled={selectedDatabase === '' || mappingName === '' || sparqlCode === ''}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit}
+        disabled={selectedDatabase === '' || mappingName === '' || sparqlCode === '' || !!duplicateNameError}
+      >
         Submit
       </Button>
     </Container>

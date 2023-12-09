@@ -7,12 +7,22 @@ import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import AuthAPI from '../Utils/AuthAPI';
 
+// Create a MUI theme
 const theme = createTheme();
 
+/**
+ * React component for activating a user account.
+ * @component
+ * @returns {JSX.Element} Activate component.
+ */
 function Activate() {
   const [verified, setVerified] = useState(false);
   const { uid, token } = useParams();
 
+  /**
+   * Sends a request to the server to verify the user account.
+   * Updates the state based on the verification result.
+   */
   const verifyAccount = () => {
     const payload = {
       uid,
@@ -29,6 +39,7 @@ function Activate() {
       });
   };
 
+  // Redirect to the login page after successful verification
   if (verified) {
     return <Navigate to="/login" />;
   }
@@ -40,6 +51,7 @@ function Activate() {
           <Typography variant="h4" gutterBottom>
             Verify your Account
           </Typography>
+          {/* Button to trigger the account verification */}
           <Button
             variant="contained"
             color="primary"

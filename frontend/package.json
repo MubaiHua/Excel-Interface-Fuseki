@@ -24,7 +24,8 @@
     "start": "react-scripts start",
     "build": "DISABLE_ESLINT_PLUGIN=true REACT_APP_ENDPOINT=http://13.56.88.70:8000 react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "generate-docs": "jsdoc -c jsdoc.config.json && jsdoc2md ./src/**/*.jsx > API.md"
   },
   "eslintConfig": {
     "extends": [
@@ -50,6 +51,8 @@
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jsdoc": "^4.0.2",
+    "jsdoc-to-markdown": "^8.0.0"
   }
 }

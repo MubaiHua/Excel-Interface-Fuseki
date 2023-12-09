@@ -10,6 +10,10 @@ import AuthAPI from '../Utils/AuthAPI';
 
 const theme = createTheme();
 
+/**
+ * ResetPasswordConfirm component handles the process of confirming a user's password reset.
+ * @returns {JSX.Element} The JSX element representing the ResetPasswordConfirm component.
+ */
 function ResetPasswordConfirm() {
   const { uid, token } = useParams();
   const [password, setPassword] = useState('');
@@ -17,6 +21,10 @@ function ResetPasswordConfirm() {
   const [resetConfirmed, setResetConfirmed] = useState(false);
   const [passwordMatchError, setPasswordMatchError] = useState('');
 
+  /**
+   * Handles the password input change and checks if the passwords match.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handlePasswordChange = (e) => {
     const enteredPassword = e.target.value;
     const isMatch = enteredPassword === confirmPassword;
@@ -24,6 +32,10 @@ function ResetPasswordConfirm() {
     setPassword(enteredPassword);
   };
 
+  /**
+   * Handles the confirm password input change and checks if the passwords match.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleConfirmPasswordChange = (e) => {
     const enteredConfirmPassword = e.target.value;
     const isMatch = enteredConfirmPassword === password;
@@ -31,10 +43,16 @@ function ResetPasswordConfirm() {
     setConfirmPassword(enteredConfirmPassword);
   };
 
+  /**
+   * Handles the reset password confirm action.
+   * Validates the password and confirm password, triggers the resetPasswordConfirm API call,
+   * and updates the state accordingly.
+   */
   const handleResetPasswordConfirm = () => {
     // Validate password and confirm password
     if (!password || !confirmPassword || password !== confirmPassword) {
       alert('Please enter your password and the same confirm password');
+      return;
     }
 
     const payload = {
@@ -49,10 +67,10 @@ function ResetPasswordConfirm() {
       .then(() => {
         setResetConfirmed(true);
       })
-      .catch((error) => {
+      .catch((err) => {
         // Handle API error (display an error message, etc.)
-        console.error('Error confirming password reset:', error);
-        alert('Error confirming password reset:', error);
+        console.error('Error confirming password reset:', err);
+        alert('Error confirming password reset:', err);
       });
   };
 

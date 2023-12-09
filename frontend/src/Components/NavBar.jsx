@@ -7,12 +7,21 @@ import Button from '@mui/material/Button';
 import { MainContext } from '../MainContext';
 import { cleanJWTToken } from '../Utils/LocalStorageAccessor';
 
+/**
+ * React component for the navigation bar.
+ * @component
+ * @returns {JSX.Element} NavBar component.
+ */
 function NavBar() {
   const {
     hasLogin, setHasLogin, userID, userName, isUserAdmin,
   } = useContext(MainContext);
   const navigate = useNavigate();
 
+  /**
+   * Handles the logout action.
+   * Cleans JWT tokens from local storage, updates login state, and navigates to the home page.
+   */
   const handleLogout = () => {
     cleanJWTToken();
     setHasLogin(false);

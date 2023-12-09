@@ -17,10 +17,23 @@ import {
   useTheme,
 } from '@mui/material';
 
+/**
+ * React component for a dynamic table with predicate and text input fields.
+ * @component
+ * @param {Object} props - The component props.
+ * @param {string[]} props.allPredicates - An array of available predicates for selection.
+ * @param {function} props.onDataUpdate - A callback function to handle data updates.
+ * @returns {JSX.Element} MyTable component.
+ */
 function MyTable({ allPredicates, onDataUpdate }) {
   const theme = useTheme();
   const [data, setData] = useState([]);
 
+  /**
+   * Handles changes in the selected predicate for a specific row.
+   * @param {number} index - The index of the row in the data array.
+   * @param {string} value - The selected predicate value.
+   */
   const handlePredicateChange = (index, value) => {
     const newData = [...data];
     newData[index].predicate = value;
@@ -28,6 +41,11 @@ function MyTable({ allPredicates, onDataUpdate }) {
     onDataUpdate(newData); // Call the callback with updated data
   };
 
+  /**
+   * Handles changes in the text input for a specific row.
+   * @param {number} index - The index of the row in the data array.
+   * @param {string} value - The text input value.
+   */
   const handleTextChange = (index, value) => {
     const newData = [...data];
     newData[index].text = value;
@@ -35,12 +53,19 @@ function MyTable({ allPredicates, onDataUpdate }) {
     onDataUpdate(newData); // Call the callback with updated data
   };
 
+  /**
+   * Adds a new row to the table.
+   */
   const handleAddRow = () => {
     const newData = [...data, { predicate: '', text: '' }];
     setData(newData);
     onDataUpdate(newData); // Call the callback with updated data
   };
 
+  /**
+   * Deletes a row from the table.
+   * @param {number} index - The index of the row to be deleted.
+   */
   const handleDeleteRow = (index) => {
     const newData = [...data];
     newData.splice(index, 1);
@@ -48,7 +73,9 @@ function MyTable({ allPredicates, onDataUpdate }) {
     onDataUpdate(newData); // Call the callback with updated data
   };
 
-  // Trigger the callback when the component mounts
+  /**
+   * Trigger the callback when the component mounts and whenever the data changes.
+   */
   useEffect(() => {
     onDataUpdate(data);
   }, [data, onDataUpdate]);

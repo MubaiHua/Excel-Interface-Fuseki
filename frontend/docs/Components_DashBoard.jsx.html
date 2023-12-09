@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/DashBoard.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/DashBoard.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import MuiDrawer from '@mui/material/Drawer';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
+import Container from '@mui/material/Container';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import AddIcon from '@mui/icons-material/Add';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import SettingsIcon from '@mui/icons-material/Settings';
+import StorageIcon from '@mui/icons-material/Storage';
+import PostAddIcon from '@mui/icons-material/PostAdd';
+import DefineMappings from './DefineMappings';
+import Overview from './Overview';
+import AddDatabase from './AddDatabase';
+import DataImport from './DataImport';
+import DataExport from './DataExport';
+import MappingList from './MappingList';
+import CustomMapping from './CreateCustomMapping';
+
+const drawerWidth = 240;
+
+// Styling the drawer
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open }) => ({
+    '&amp; .MuiDrawer-paper': {
+      position: 'relative',
+      whiteSpace: 'nowrap',
+      width: drawerWidth,
+      transition: theme.transitions.create('width', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      boxSizing: 'border-box',
+      ...(!open &amp;&amp; {
+        overflowX: 'hidden',
+        transition: theme.transitions.create('width', {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.leavingScreen,
+        }),
+        width: theme.spacing(7),
+        [theme.breakpoints.up('sm')]: {
+          width: theme.spacing(9),
+        },
+      }),
+    },
+  }),
+);
+
+const defaultTheme = createTheme();
+
+/**
+ * Dashboard component for displaying user interface with navigation options.
+ * @param {Object} props - Component properties.
+ * @param {number} props.userID - User ID.
+ * @param {string} props.userName - User name.
+ * @param {boolean} props.isUserAdmin - Indicates whether the user is an admin.
+ * @returns {JSX.Element} React component.
+ */
+export default function Dashboard({ userID, userName, isUserAdmin }) {
+  const [open, setOpen] = useState(true);
+  const [tab, setTab] = useState('Overview');
+
+  /**
+   * Toggle the open/close state of the drawer.
+   * @returns {void}
+   */
+  const toggleDrawer = () => {
+    setOpen(!open);
+  };
+
+  return (
+    &lt;ThemeProvider theme={defaultTheme}>
+      &lt;Box sx={{ display: 'flex' }}>
+        &lt;CssBaseline />
+        &lt;Drawer variant="permanent" open={open}>
+          &lt;Toolbar sx={{ paddingLeft: 0 }} disableGutters>
+            &lt;ListItemButton onClick={toggleDrawer}>
+              &lt;ListItemIcon>
+                {open ? &lt;ChevronLeftIcon /> : &lt;MenuIcon />}
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Dashboard" />
+            &lt;/ListItemButton>
+          &lt;/Toolbar>
+          &lt;Divider />
+          &lt;List component="nav">
+            {
+              isUserAdmin &amp;&amp; (
+                &lt;>
+                  &lt;ListItemButton onClick={() => setTab('Overview')}>
+                    &lt;ListItemIcon>
+                      &lt;StorageIcon />
+                    &lt;/ListItemIcon>
+                    &lt;ListItemText primary="Overview" />
+                  &lt;/ListItemButton>
+                  &lt;ListItemButton onClick={() => setTab('Create Mapping')}>
+                    &lt;ListItemIcon>
+                      &lt;AddIcon />
+                    &lt;/ListItemIcon>
+                    &lt;ListItemText primary="Create Mapping" />
+                  &lt;/ListItemButton>
+                  &lt;ListItemButton onClick={() => setTab('Custom Mapping')}>
+                    &lt;ListItemIcon>
+                      &lt;DashboardCustomizeIcon />
+                    &lt;/ListItemIcon>
+                    &lt;ListItemText primary="Custom Mapping" />
+                  &lt;/ListItemButton>
+                &lt;/>
+              )
+          }
+            &lt;ListItemButton onClick={() => setTab('Mappings')}>
+              &lt;ListItemIcon>
+                &lt;FormatListBulletedIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Mappings" />
+            &lt;/ListItemButton>
+            {isUserAdmin &amp;&amp; (
+            &lt;ListItemButton onClick={() => setTab('Add Database')}>
+              &lt;ListItemIcon>
+                &lt;PostAddIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Add Database" />
+            &lt;/ListItemButton>
+            )}
+            &lt;ListItemButton onClick={() => setTab('Export Data')}>
+              &lt;ListItemIcon>
+                &lt;FileDownloadIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Export Data" />
+            &lt;/ListItemButton>
+            &lt;ListItemButton onClick={() => setTab('Import Data')}>
+              &lt;ListItemIcon>
+                &lt;FileUploadIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Import Data" />
+            &lt;/ListItemButton>
+            &lt;Divider sx={{ my: 1 }} />
+            &lt;ListItemButton>
+              &lt;ListItemIcon>
+                &lt;SettingsIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText primary="Settings" />
+            &lt;/ListItemButton>
+          &lt;/List>
+        &lt;/Drawer>
+        &lt;Box
+          component="main"
+          sx={{
+            backgroundColor: (theme) => (theme.palette.mode === 'light'
+              ? theme.palette.grey[100]
+              : theme.palette.grey[900]),
+            flexGrow: 1,
+            height: '100vh',
+            overflow: 'auto',
+          }}
+        >
+          &lt;Toolbar />
+          &lt;Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            {tab === 'Overview' &amp;&amp; (&lt;Overview userID={userID} userName={userName} />)}
+            {tab === 'Create Mapping' &amp;&amp; (&lt;DefineMappings userID={userID} userName={userName} />)}
+            {tab === 'Add Database' &amp;&amp; (&lt;AddDatabase userID={userID} userName={userName} />)}
+            {tab === 'Import Data' &amp;&amp; (&lt;DataImport userID={userID} userName={userName} />)}
+            {tab === 'Export Data' &amp;&amp; (&lt;DataExport userID={userID} userName={userName} />)}
+            {tab === 'Mappings' &amp;&amp; (&lt;MappingList userID={userID} userName={userName} />)}
+            {tab === 'Custom Mapping' &amp;&amp; (&lt;CustomMapping userID={userID} userName={userName} />)}
+          &lt;/Container>
+        &lt;/Box>
+      &lt;/Box>
+    &lt;/ThemeProvider>
+  );
+}
+
+Dashboard.propTypes = {
+  userID: PropTypes.number.isRequired,
+  userName: PropTypes.string.isRequired,
+  isUserAdmin: PropTypes.bool.isRequired,
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

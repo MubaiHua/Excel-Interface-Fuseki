@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useCallback } from 'react';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -8,28 +7,47 @@ import TextField from '@mui/material/TextField';
 import { useDropzone } from 'react-dropzone';
 import { addDatabaseFile } from '../Utils/FusekiAPI';
 
+/**
+ * React component for uploading a file to create a new database.
+ *
+ * @component
+ * @returns {JSX.Element} JSX.Element
+ */
 function FileUpload() {
+  /**
+   * State variables for managing file-related data and form inputs.
+   */
   const [selectedFile, setSelectedFile] = useState(null);
   const [databaseName, setDatabaseName] = useState('');
   const [hasSpaceInDatabaseName, setHasSpaceInDatabaseName] = useState(false);
-  // const [graphName, setGraphName] = useState('');
 
+  /**
+   * Function to send file content to the server for database creation.
+   *
+   * @param {string} fileContent - The content of the uploaded file.
+   * @returns {void}
+   */
   const sendFileContent = async (fileContent) => {
     const requestData = {
       fileContent,
       databaseName,
     };
 
-    addDatabaseFile(requestData)
-      .then((data) => {
-        alert(`Successfully create database ${data.name}`);
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        alert('Please make sure database name is unique, and the uploaded file format is correct');
-      });
+    try {
+      const data = await addDatabaseFile(requestData);
+      alert(`Successfully create database ${data.name}`);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Please make sure the database name is unique, and the uploaded file format is correct');
+    }
   };
 
+  /**
+   * Callback function for handling the file drop event.
+   *
+   * @param {File[]} acceptedFiles - The accepted files dropped into the drop zone.
+   * @returns {void}
+   */
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
@@ -37,6 +55,11 @@ function FileUpload() {
     }
   }, []);
 
+  /**
+   * Function to handle form submission.
+   *
+   * @returns {void}
+   */
   const handleSubmit = async () => {
     // Check if a file has been selected
     if (!selectedFile) {
@@ -54,8 +77,16 @@ function FileUpload() {
     reader.readAsText(selectedFile);
   };
 
+  /**
+   * Custom hook for handling drop zone functionality.
+   */
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, maxFiles: 1 });
 
+  /**
+   * JSX structure of the component.
+   *
+   * @returns {JSX.Element} JSX.Element
+   */
   return (
     <div>
       <Typography variant="h4" sx={{ marginBottom: '16px' }}>
@@ -80,14 +111,6 @@ function FileUpload() {
         error={hasSpaceInDatabaseName}
         helperText={hasSpaceInDatabaseName ? 'Database name should not contain spaces' : ''}
       />
-      {/* <TextField
-        label="Graph Name"
-        variant="outlined"
-        margin="normal"
-        fullWidth
-        value={graphName}
-        onChange={(e) => setGraphName(e.target.value)}
-      /> */}
 
       <Box
         {...getRootProps()}

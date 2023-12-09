@@ -25,11 +25,16 @@ import {
 
 const steps = ['Enter a name', 'Select Database', 'Select Data Types', 'Select Attributes of the type'];
 
+/**
+ * Component displaying finished items in a list.
+ * @param {object} props - Component props.
+ * @returns {JSX.Element} The JSX element representing the FinishedItem component.
+ */
 function FinishedItem({ finishedList }) {
   return (
     <List sx={{ width: '100%', fullWidth: true }}>
       {finishedList.map((item) => (
-        <ListItem>
+        <ListItem key={item.type}>
           <ListItemAvatar>
             <Avatar>
               <ViewStreamIcon />
@@ -51,6 +56,11 @@ FinishedItem.propTypes = {
   ).isRequired,
 };
 
+/**
+ * Component for defining mappings with a multi-step form.
+ * @param {object} props - Component props.
+ * @returns {JSX.Element} The JSX element representing the DefineMappings component.
+ */
 export default function DefineMappings({ userName, userID }) {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -71,6 +81,9 @@ export default function DefineMappings({ userName, userID }) {
 
   const [dupliacateNameError, setDupliacateNameError] = useState('');
 
+  /**
+   * Fetches Fuseki datasets and sets the state.
+   */
   useEffect(() => {
     getFusekiDatasets()
       .then((response) => {
@@ -83,26 +96,45 @@ export default function DefineMappings({ userName, userID }) {
       });
   }, [userID]);
 
+  /**
+   * Handles the change event for selecting a dataset.
+   * @param {object} event - The event object.
+   */
   const handleDatasetChange = (event) => {
     setSelectedDatabase(event.target.value);
     setSelectedType(''); // clean selected type if user goes back from the second step
     setSelectedPredicates([]); // clean selected type if user goes back from the third step
   };
 
+  /**
+   * Handles the change event for selecting a data type.
+   * @param {object} event - The event object.
+   */
   const handleTypeSelectionChange = (event) => {
     setSelectedType(event.target.value);
     setSelectedPredicates([]);// clean selected type if user goes back from the third step
   };
 
+  /**
+   * Handles the change event for selecting predicates.
+   * @param {object} event - The event object.
+   */
   const handlePredicatesSelectionChange = (event) => {
     setSelectedPredicates(event.target.value);
   };
 
+  /**
+   * Handles the change event for mapping name input.
+   * @param {object} event - The event object.
+   */
   const handleMappingNameChange = (event) => {
     setMappingName(event.target.value);
     setSelectedDatabase('');
   };
 
+  /**
+   * Handles the click event for the "Next" button in the multi-step form.
+   */
   const handleNext = () => {
     if (activeStep === 0) {
       checkDuplicateMappingName({ name: mappingName })
@@ -159,6 +191,9 @@ export default function DefineMappings({ userName, userID }) {
     }
   };
 
+  /**
+   * Handles the click event for the "Back" button in the multi-step form.
+   */
   const handleBack = () => {
     setActiveStep((prevActiveStep) => {
       if (prevActiveStep - 1 === 0) {
@@ -168,6 +203,9 @@ export default function DefineMappings({ userName, userID }) {
     });
   };
 
+  /**
+   * Handles the click event for the "Reset" button in the multi-step form.
+   */
   const handleReset = () => {
     setActiveStep(0);
     setSelectedDatabase('');

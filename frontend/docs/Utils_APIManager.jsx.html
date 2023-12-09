@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Utils/APIManager.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Utils/APIManager.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import axios from 'axios';
+import { getJWTToken } from './LocalStorageAccessor';
+
+/**
+ * Utility class for making API requests using Axios.
+ * @class APIManager
+ */
+export default class APIManager {
+  /**
+   * Make a GET request to the specified API endpoint.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @returns {Promise} A Promise that resolves to the response data.
+   */
+  static get(endpoint) {
+    /**
+     * Implementation details...
+     */
+    return axios.get(String(process.env.REACT_APP_ENDPOINT) + endpoint, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+    })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.log(`Error in GET request to ${endpoint}:`, error);
+        return error;
+      });
+  }
+
+  /**
+   * Make a POST request to the specified API endpoint with the provided data.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @param {Object} data - The data to be sent in the request body.
+   * @returns {Promise} A Promise that resolves to the response data.
+   */
+  static post(endpoint, data) {
+    /**
+     * Implementation details...
+     */
+    return axios.post(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+    })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.log(`Error in POST request to ${endpoint}:`, error);
+        return error;
+      });
+  }
+
+  /**
+   * Make a POST request to the specified API endpoint and expect a file in response.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @param {Object} data - The data to be sent in the request body.
+   * @returns {Promise} A Promise that resolves to a blob representing the file.
+   */
+  static postGetFile(endpoint, data) {
+    /**
+     * Implementation details...
+     */
+    return axios.post(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+      responseType: 'blob',
+    });
+  }
+
+  /**
+   * Make a PUT request to the specified API endpoint with the provided data.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @param {Object} data - The data to be sent in the request body.
+   * @returns {Promise} A Promise that resolves to the response data.
+   */
+  static put(endpoint, data) {
+    /**
+     * Implementation details...
+     */
+    return axios.put(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+    })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.log(`Error in PUT request to ${endpoint}:`, error);
+        return error;
+      });
+  }
+
+  /**
+   * Make a PATCH request to the specified API endpoint with the provided data.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @param {Object} data - The data to be sent in the request body.
+   * @returns {Promise} A Promise that resolves to the response data.
+   */
+  static patch(endpoint, data) {
+    /**
+     * Implementation details...
+     */
+    return axios.patch(String(process.env.REACT_APP_ENDPOINT) + endpoint, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+    })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.log(`Error in PATCH request to ${endpoint}:`, error);
+        return error;
+      });
+  }
+
+  /**
+   * Make a DELETE request to the specified API endpoint.
+   * @static
+   * @param {string} endpoint - The API endpoint.
+   * @returns {Promise} A Promise that resolves to the response data.
+   */
+  static delete(endpoint) {
+    /**
+     * Implementation details...
+     */
+    return axios.delete(String(process.env.REACT_APP_ENDPOINT) + endpoint, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `JWT ${getJWTToken()}`,
+      },
+    })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.log(`Error in DELETE request to ${endpoint}:`, error);
+        return error;
+      });
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Activate.html">Activate</a></li><li><a href="BigPictureHome.html">BigPictureHome</a></li><li><a href="global.html#Copyright">Copyright</a></li><li><a href="CustomMapping.html">CustomMapping</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="Login.html">Login</a></li><li><a href="MappingList.html">MappingList</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="NavBar.html">NavBar</a></li><li><a href="Overview.html">Overview</a></li></ul><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#DataExport">DataExport</a></li><li><a href="global.html#DataImport">DataImport</a></li><li><a href="global.html#FinishedItem">FinishedItem</a></li><li><a href="global.html#MainContextProvider">MainContextProvider</a></li><li><a href="global.html#ResetPassword">ResetPassword</a></li><li><a href="global.html#ResetPasswordConfirm">ResetPasswordConfirm</a></li><li><a href="global.html#SignUp">SignUp</a></li><li><a href="global.html#UserHome">UserHome</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#patch">patch</a></li><li><a href="global.html#post">post</a></li><li><a href="global.html#postGetFile">postGetFile</a></li><li><a href="global.html#put">put</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Dec 08 2023 21:07:14 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
