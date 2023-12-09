@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 
 class ViewsTestCase(TestCase):
     def test_create_new_database(self):
-        url = reverse('api/database')  # replace with your actual API endpoint
+        url = reverse('database')  # replace with your actual API endpoint
         data = {'databaseName': 'test Database',
                 'fileContent': """
         PREFIX : <http://stardog.com/tutorial/>
@@ -52,14 +52,14 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_list_fuseki_datasets(self):
-        url = reverse('api/get_database_types/')
+        url = reverse('get_database_types/')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['key'], ['test Database'])
 
     def test_get_database_types(self):
         db_name = 'test Database'
-        url = reverse(f'api/get_database_types/?db_name=${db_name}')
+        url = reverse(f'get_database_types/?db_name=${db_name}')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['key'], ["Band", "SoloArtist", "Album", "Song"])
@@ -67,7 +67,7 @@ class ViewsTestCase(TestCase):
     def test_get_type_predicates(self):
         db_name = 'test Database'
         type = 'Album'
-        url = reverse(f'api/get_type_predicates/?db_name={db_name}&selectedType={type}')
+        url = reverse(f'get_type_predicates/?db_name={db_name}&selectedType={type}')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [
@@ -104,6 +104,6 @@ class ViewsTestCase(TestCase):
                                      {"predicate": {"type": "uri", "value": "http://stardog.com/tutorial/date"}},
                                      {"predicate": {"type": "uri", "value": "http://stardog.com/tutorial/artist"}}],
                    "mappingName": "new network 1"}
-        url = reverse(f'api/mapping')
+        url = reverse(f'mapping')
         response = self.client.post(url, data=payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
