@@ -52,7 +52,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_list_fuseki_datasets(self):
-        url = reverse('api/list_fuseki_datasets/')
+        url = reverse('api/get_database_types/')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['key'], ['test Database'])
