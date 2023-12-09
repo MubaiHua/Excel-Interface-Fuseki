@@ -9,9 +9,9 @@ This web application will give the user a UI to assist in specifying mappings an
 ![image](https://github.com/MubaiHua/CS130-Group-Project/assets/76729945/6a83af7e-03a4-4ede-8978-3f445fb42d29)
 
 # To run the application locally
-1. make sure to have Docker Desktop installed
-2. run the following command at the root directory to build all docker containers:
+1. Make sure to have Docker Desktop installed
+2. Run the following command at the root directory to build all docker containers:
     ```
     docker-compose up -d
     ```
-3. after all containers are up, enter `http://localhost:8080/` on your web browser to open the locally running web application 
+3. After all containers are up, enter `http://localhost:8080/` on your web browser to open the locally running web application
