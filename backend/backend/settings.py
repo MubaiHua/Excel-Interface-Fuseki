@@ -64,7 +64,8 @@ INSTALLED_APPS = [
     'excelinterface',
     'accounts',
     'djoser',
-    'corsheaders'
+    'corsheaders',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
