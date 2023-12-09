@@ -16,3 +16,4 @@ djoser
 pyfuseki
 datetime
 requests
+drf-yasg
