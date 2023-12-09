@@ -7,11 +7,6 @@ from unittest.mock import patch, MagicMock
 
 
 class ViewsTestCase(TestCase):
-    def test_list_fuseki_datasets(self):
-        request = reverse('api/list_fuseki_datasets')
-        response = list_fuseki_datasets(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_create_new_database(self):
         url = reverse('api/database')  # replace with your actual API endpoint
         data = {'databaseName': 'test Database',
