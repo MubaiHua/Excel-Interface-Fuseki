@@ -200,3 +200,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ORIGIN_ALLOW_ALL = True
 
 FUSEKI_END_POINT = "http://13.56.88.70:3030" if ENVIRONMENT == 'prod' else "http://localhost:3030"
+
+SWAGGER_SETTINGS = {
+   'USE_SESSION_AUTH': False
+}
